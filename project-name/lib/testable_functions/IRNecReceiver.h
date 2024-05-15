@@ -6,7 +6,7 @@
 #include "driver/rmt.h"
 
 #define IR_RESOLUTION_HZ 1000000 // 1MHz resolution
-#define NEC_DECODE_MARGIN 300    // Increase decode margin to 300
+#define NEC_DECODE_MARGIN 200    // Increase decode margin to 300
 
 #define NEC_LEADING_CODE_DURATION_0  9000
 #define NEC_LEADING_CODE_DURATION_1  4500
