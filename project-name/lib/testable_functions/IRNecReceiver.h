@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 #include "driver/rmt.h"
+#include "configuration.h"
 
 #define IR_RESOLUTION_HZ 1000000 // 1MHz resolution
 #define NEC_DECODE_MARGIN 300    // Increase decode margin to 300

@@ -2,7 +2,7 @@
 #define CONFIGURATION_H
 
 // IR sensors
-#define SENSOR_PINS {26, 27, 14}      // GPIO pins for IR sensors
+#define SENSOR_PINS {19}      // GPIO pins for IR sensors
 static const int sensorPins[] = SENSOR_PINS;
 #define NUM_SENSORS (sizeof(sensorPins) / sizeof(sensorPins[0]))
 

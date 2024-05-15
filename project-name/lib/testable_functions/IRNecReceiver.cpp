@@ -9,7 +9,7 @@ void IRNecReceiver::init() {
     rmt_rx_config.rmt_mode = RMT_MODE_RX;
     rmt_rx_config.channel = channel_;
     rmt_rx_config.gpio_num = gpio_num_;
-    rmt_rx_config.clk_div = 80;
+    rmt_rx_config.clk_div = RMT_CLK_DIV;
     rmt_rx_config.mem_block_num = 1;
     rmt_rx_config.flags = 0;
     rmt_rx_config.rx_config.filter_en = true;
@@ -18,7 +18,7 @@ void IRNecReceiver::init() {
 
     // Configure RMT receiver
     ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
-    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, 1000, 0));
+    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, RMT_RX_BUFFER_SIZE, 0));
 
     // Get ring buffer handle
     ESP_ERROR_CHECK(rmt_get_ringbuf_handle(channel_, &rb_));
