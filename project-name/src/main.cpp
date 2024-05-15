@@ -1,16 +1,19 @@
 #ifdef EMBEDDED_BUILD
 
 #include <Arduino.h>
-#include "configuration.h"
-#include "taskManager.h"
+#include "IRNecReceiver.h"
+
+// Create an instance of the IRNecReceiver class
+IRNecReceiver irReceiver1(GPIO_NUM_19, RMT_CHANNEL_0);
 
 void setup() {
     Serial.begin(115200);
-    
-    createSensorTasks();
+    irReceiver1.init(); // Initialize the IR receiver
 }
 
 void loop() {
+    // Main loop does nothing, IR receive task handles everything
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Sleep to let FreeRTOS manage tasks
 }
 
 #else
