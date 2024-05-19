@@ -1,10 +1,9 @@
 #ifdef EMBEDDED_BUILD
 
-#include <Arduino.h>
-#include "IRNecReceiver.h"
+#include "IRReceiver.h"
 
 // Create an instance of the IRNecReceiver class
-IRNecReceiver irReceiver1(GPIO_NUM_19, RMT_CHANNEL_0);
+IRReceiver irReceiver1(GPIO_NUM_19, RMT_CHANNEL_0);
 
 void setup() {
     Serial.begin(115200);

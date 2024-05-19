@@ -1,6 +1,5 @@
 #ifdef EMBEDDED_BUILD
 
-#include <Arduino.h>
 #include "led.hpp"
 
 void setLED(int state){
