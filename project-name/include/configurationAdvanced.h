@@ -19,13 +19,35 @@
     #define NEC_REPEAT_CODE_DURATION_1  2250
 
     // Frame length constants
-    #define NEC_LEADING_ITEM_COUNT 2            // changed from 1 because i am getting 24 total
-    #define NEC_REPEAT_FRAME_ITEM_COUNT 4       // changed from 2 because i am getting 4
+    #define NEC_LEADING_ITEM_COUNT 1            // changed from 1 because i am getting 24 total
+    #define NEC_REPEAT_FRAME_ITEM_COUNT 2       // changed from 2 because i am getting 4
 
     #define NEC_ADRESS_BITS             8       // excluding inverted bits
     #define NEC_COMMAND_BITS            8       // excluding inverted bits
     #define HAS_INVERTED_ADDRESS                // uncomment if true
     #define HAS_INVERTED_COMMAND                // uncomment if true
+#endif
+
+#ifdef SAMSUNG
+    #define SAMSUNG_DECODE_MARGIN 300    // Increase decode margin to 300
+
+    #define SAMSUNG_LEADING_CODE_DURATION_0 4500
+    #define SAMSUNG_LEADING_CODE_DURATION_1 4500
+    #define SAMSUNG_PAYLOAD_ZERO_DURATION_0 590
+    #define SAMSUNG_PAYLOAD_ZERO_DURATION_1 1690
+    #define SAMSUNG_PAYLOAD_ONE_DURATION_0  590
+    #define SAMSUNG_PAYLOAD_ONE_DURATION_1  590
+    #define SAMSUNG_REPEAT_CODE_DURATION_0  9000    // not sure what this value is supposed to be
+    #define SAMSUNG_REPEAT_CODE_DURATION_1  2250    // not sure what this value is supposed to be
+
+    // Frame length constants
+    #define SAMSUNG_LEADING_ITEM_COUNT 2            // changed from 1 because there is a trailing bit too
+    #define SAMSUNG_REPEAT_FRAME_ITEM_COUNT 4       // changed from 2 because i am getting 4
+
+    #define SAMSUNG_ADRESS_BITS             16       // excluding inverted bits
+    #define SAMSUNG_COMMAND_BITS            16       // excluding inverted bits
+    // #define HAS_INVERTED_ADDRESS                // uncomment if true
+    // #define HAS_INVERTED_COMMAND                // uncomment if true
 #endif
 
 #ifdef LTTO

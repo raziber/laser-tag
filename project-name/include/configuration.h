@@ -10,7 +10,8 @@
 #define SENSOR_PINS {19}
 
 // communication protocol, uncomment desired protocol
-#define NEC
+// #define NEC
+#define SAMSUNG
 // #define LTTO
 // #define CUSTOM_PROTOCOL
 
