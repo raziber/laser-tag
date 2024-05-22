@@ -52,19 +52,17 @@ void IRReceiver::handleReceivedData() {
         // Wait for data to be received
         items = (rmt_item32_t*) xRingbufferReceive(rb_, &rx_size, portMAX_DELAY);
         if (items) {
-            Serial.printf("Data received: %d items\n", rx_size / sizeof(rmt_item32_t));
-            Serial.printf("FRAME_ITEM_COUNT: %d\n", FRAME_ITEM_COUNT);
-            Serial.printf("REPEAT_FRAME_ITEM_COUNT: %d\n", REPEAT_FRAME_ITEM_COUNT);
+            // Serial.printf("Data received: %d items, on port: %d\n", rx_size / sizeof(rmt_item32_t), channel_);
             uint16_t address = 0, command = 0;
             if (rx_size == FRAME_ITEM_COUNT * sizeof(rmt_item32_t)) {
                 if (parseFrame(items, address, command)) {
-                    Serial.printf("Address: 0x%04X, Command: 0x%04X\n", address, command);
+                    Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X\n", channel_, address, command);
                 } else {
                     Serial.println("Failed to parse frame.");
                 }
             } else if (rx_size == REPEAT_FRAME_ITEM_COUNT * sizeof(rmt_item32_t)) {
                 if (parseRepeatFrame(items)) {
-                    Serial.printf("Address: 0x%04X, Command: 0x%04X (repeat)\n", address, command);
+                    Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X (repeat)\n", channel_, address, command);
                 } else {
                     Serial.println("Failed to parse repeat frame.");
                 }
