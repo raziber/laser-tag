@@ -20,6 +20,7 @@
 
     // #define HAS_STOP_BIT                         // uncomment if true
     #ifdef HAS_STOP_BIT
+        #define NEC_STOP_BIT_DURATION_0     700
         #define NEC_STOP_BIT_DURATION_1     4500
     #endif
 
@@ -47,6 +48,7 @@
 
     #define HAS_STOP_BIT                            // uncomment if true
     #ifdef HAS_STOP_BIT
+        #define SAMSUNG_STOP_BIT_DURATION_0 700
         #define SAMSUNG_STOP_BIT_DURATION_1 4500
     #endif
 

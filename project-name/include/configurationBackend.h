@@ -25,6 +25,7 @@ static const int shooterPins[] = SHOOTER_PINS;
     #define REPEAT_FRAME_ITEM_COUNT NEC_REPEAT_FRAME_ITEM_COUNT
 
     #ifdef HAS_STOP_BIT
+        #define STOP_BIT_DURATION_0 NEC_STOP_BIT_DURATION_0
         #define STOP_BIT_DURATION_1 NEC_STOP_BIT_DURATION_1
     #endif
 #endif
@@ -44,6 +45,7 @@ static const int shooterPins[] = SHOOTER_PINS;
     #define REPEAT_FRAME_ITEM_COUNT SAMSUNG_REPEAT_FRAME_ITEM_COUNT
     
     #ifdef HAS_STOP_BIT
+        #define STOP_BIT_DURATION_0 SAMSUNG_STOP_BIT_DURATION_0
         #define STOP_BIT_DURATION_1 SAMSUNG_STOP_BIT_DURATION_1
     #endif
 #endif
@@ -63,6 +65,7 @@ static const int shooterPins[] = SHOOTER_PINS;
     #define REPEAT_FRAME_ITEM_COUNT LTTO_REPEAT_FRAME_ITEM_COUNT
     
     #ifdef HAS_STOP_BIT
+        #define STOP_BIT_DURATION_0 LTTO_STOP_BIT_DURATION_0
         #define STOP_BIT_DURATION_1 LTTO_STOP_BIT_DURATION_1
     #endif
 #endif
@@ -82,6 +85,7 @@ static const int shooterPins[] = SHOOTER_PINS;
     #define REPEAT_FRAME_ITEM_COUNT CUSTOM_PROTOCOL_REPEAT_FRAME_ITEM_COUNT
     
     #ifdef HAS_STOP_BIT
+        #define STOP_BIT_DURATION_0 CUSTOM_PROTOCOL_STOP_BIT_DURATION_0
         #define STOP_BIT_DURATION_1 CUSTOM_PROTOCOL_STOP_BIT_DURATION_1
     #endif
 #endif

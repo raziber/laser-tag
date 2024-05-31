@@ -59,7 +59,7 @@ bool buildPacket(rmt_item32_t items[], uint32_t address, uint32_t command){
 
     #ifdef HAS_STOP_BIT
         // Build stop bit
-        items[i++] = buildItem(STOP_BIT_DURATION_1, 700);   // change from 700 to protocol specific value
+        items[i++] = buildItem(STOP_BIT_DURATION_1, STOP_BIT_DURATION_0);   // change from 700 to protocol specific value
     #endif
 
     // check success and return true if successful
