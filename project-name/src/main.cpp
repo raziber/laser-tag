@@ -2,14 +2,17 @@
 
 #include "IRReceiver.h"
 
-// Create an instance of the IRNecReceiver class
-IRReceiver irReceiver1(GPIO_NUM_19, RMT_CHANNEL_0);
-IRReceiver irReceiver2(GPIO_NUM_21, RMT_CHANNEL_1);
+// Create an array to hold IRReceiver instances
+IRReceiver* irReceivers[NUM_SENSORS];
 
 void setup() {
     Serial.begin(115200);
-    irReceiver1.init(); // Initialize the IR receiver
-    irReceiver2.init(); // Initialize the IR receiver
+
+    // Initialize each IR receiver
+    for (int i = 0; i < NUM_SENSORS; i++) {
+        irReceivers[i] = new IRReceiver((gpio_num_t)sensorPins[i], (rmt_channel_t)i);
+        irReceivers[i]->init();
+    }
 }
 
 void loop() {
