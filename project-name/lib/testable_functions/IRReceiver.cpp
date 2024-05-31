@@ -67,7 +67,7 @@ void IRReceiver::handleReceivedData() {
                     Serial.println("Failed to parse repeat frame.");
                 }
             } else {
-                Serial.println("Received incomplete frame.");
+                Serial.printf("Received incomplete frame, only %d items...\n", rx_size/sizeof(rmt_item32_t));
             }
             // Return the items to the ring buffer
             vRingbufferReturnItem(rb_, (void*) items);
