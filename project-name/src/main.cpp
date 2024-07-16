@@ -2,6 +2,10 @@
 
 #include "IRReceiver.h"
 #include "IRTransmitter.h"
+#include "wifiFunctions.h"
+
+// Declare a semaphore handle
+SemaphoreHandle_t wifiSemaphore;
 
 // Create an array to hold IRReceiver instances
 IRReceiver* irReceivers[NUM_SENSORS];
@@ -11,6 +15,14 @@ IRTransmitter* irTransmitters[NUM_SHOOTERS];
 
 void setup() {
     Serial.begin(115200);
+
+    // Create the semaphore before creating any tasks
+    wifiSemaphore = xSemaphoreCreateBinary();
+
+    xTaskCreatePinnedToCore(wifiTask, "WiFiTask", 4096, NULL, 1, NULL, 0);
+
+    // Delay to allow WiFi task to initialize
+    vTaskDelay(pdMS_TO_TICKS(100));
 
     int channel = 0;
 
@@ -34,12 +46,15 @@ void setup() {
 }
 
 void loop() {
-    // Example usage: send a command from the first transmitter
-    uint32_t address = 0xF8F8;
-    uint32_t command = 0x0BF4;
-    irTransmitters[0]->sendCommand(address, command);
+    // Wait for WiFi semaphore
+    if (xSemaphoreTake(wifiSemaphore, portMAX_DELAY) == pdTRUE) {
+        // Example usage: send a command from the first transmitter
+        uint32_t address = 0xF8F8;
+        uint32_t command = 0x0BF4;
+        irTransmitters[0]->sendCommand(address, command);
 
-    vTaskDelay(pdMS_TO_TICKS(3000)); // Sleep to let FreeRTOS manage tasks
+        vTaskDelay(pdMS_TO_TICKS(3000)); // Sleep to let FreeRTOS manage tasks
+    }
 }
 
 #else
