@@ -16,13 +16,13 @@ void setup() {
 
     // Initialize each IR receiver
     for (int i = 0; i < NUM_SENSORS; i++) {
-        irReceivers[i] = new IRReceiver((gpio_num_t)sensorPins[i], (rmt_channel_t)channel++);
+        irReceivers[i] = new IRReceiver((gpio_num_t)irSettings::SENSOR_PINS[i], (rmt_channel_t)channel++);
         irReceivers[i]->init();
     }
 
     // Initialize each IR transmitter
     for (int i = 0; i < NUM_SHOOTERS; i++) {
-        irTransmitters[i] = new IRTransmitter((gpio_num_t)shooterPins[i], (rmt_channel_t)channel++);
+        irTransmitters[i] = new IRTransmitter((gpio_num_t)irSettings::SHOOTER_PINS[i], (rmt_channel_t)channel++);
         irTransmitters[i]->init();
     }
 

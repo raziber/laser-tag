@@ -1,12 +1,8 @@
 #ifndef CONFIGURATION_BACKEND_H
 #define CONFIGURATION_BACKEND_H
 
-static const int sensorPins[] = SENSOR_PINS;
-#define NUM_SENSORS (sizeof(sensorPins) / sizeof(sensorPins[0]))
-
-static const int shooterPins[] = SHOOTER_PINS;
-#define NUM_SHOOTERS (sizeof(shooterPins) / sizeof(shooterPins[0]))
-
+constexpr int NUM_SENSORS = irSettings::SENSOR_PINS.size();
+constexpr int NUM_SHOOTERS = irSettings::SHOOTER_PINS.size();
 
 // IR communications
 #ifdef NEC

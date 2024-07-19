@@ -12,4 +12,8 @@
 #include "configurationAdvanced.h"
 #include "configurationBackend.h"
 
+#include <vector>
+#include <array>
+#include <memory>
+
 #endif // PCH_H

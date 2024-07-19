@@ -15,12 +15,13 @@ GPIO 25 -> 27
 GPIO 32 -> 33
 INPUT ONLY: GPIO 34 -> 39
 
-
-
 */
 // maximum RMT_CHANNEL_MAX channels
-#define SENSOR_PINS {19}
-#define SHOOTER_PINS {33}
+namespace irSettings{
+    constexpr std::array<int, 1> SENSOR_PINS = {19};
+    constexpr std::array<int, 1> SHOOTER_PINS = {33};
+}
+
 
 // communication protocol, uncomment desired protocol
 // #define NEC
