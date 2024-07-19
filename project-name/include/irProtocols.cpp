@@ -1,3 +1,5 @@
+#include "irProtocols.h"
+
 ProtocolSettings getProtocolSettings(Protocol protocol) {
     switch (protocol) {
         case Protocol::NEC:

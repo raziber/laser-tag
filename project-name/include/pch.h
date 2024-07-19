@@ -1,5 +1,4 @@
-#ifndef PCH_H
-#define PCH_H
+#pragma once
 
 #ifdef EMBEDDED_BUILD
     #include <Arduino.h>
@@ -17,6 +16,3 @@
 #include <vector>
 #include <array>
 #include <memory>
-#include <span>
-
-#endif // PCH_H

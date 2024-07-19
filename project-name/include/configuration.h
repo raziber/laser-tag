@@ -1,5 +1,4 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#pragma once
 
 // -----------------------------------------------------
 // ----------------- IR communications -----------------
@@ -24,5 +23,3 @@ namespace irSettings{
 
 // Select your protocol here
 Protocol selectedProtocol = Protocol::SAMSUNG;
-
-#endif // CONFIGURATION_H
