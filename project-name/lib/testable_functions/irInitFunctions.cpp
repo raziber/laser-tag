@@ -1,8 +1,5 @@
 #include "irInitFunctions.h"
 
-#include "IRReceiver.h"
-#include "IRTransmitter.h"
-
 void initReceivers(std::vector<std::unique_ptr<IRReceiver>> irReceivers) {
     int channel = 0;
 
