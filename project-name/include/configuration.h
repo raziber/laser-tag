@@ -21,5 +21,9 @@ namespace irSettings{
     constexpr std::array<int, 1> SHOOTER_PINS = {33};
 }
 
+namespace serialSettings{
+    constexpr int BAUD_RATE = 115200;
+}
+
 // Select your protocol here
 Protocol selectedProtocol = Protocol::SAMSUNG;

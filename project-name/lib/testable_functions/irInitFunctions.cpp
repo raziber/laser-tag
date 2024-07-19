@@ -28,3 +28,9 @@ void initTransmitters(std::vector<std::unique_ptr<IRTransmitter>> irTransmitters
         irTransmitters.back()->init();
     }
 }
+
+void initIR(){
+    initReceivers(IRDevices::irReceivers);
+    initTransmitters(IRDevices::irTransmitters);
+    Serial.println("All IR receivers and transmitters initialized.");
+}
