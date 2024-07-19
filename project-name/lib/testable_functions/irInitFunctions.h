@@ -9,6 +9,6 @@ namespace IRDevices {
     std::vector<std::unique_ptr<IRTransmitter>> irTransmitters;
 }
 
-void initReceivers(std::vector<std::unique_ptr<IRReceiver>> irReceivers);
-void initTransmitters(std::vector<std::unique_ptr<IRTransmitter>> irTransmitters);
+void initReceivers();
+void initTransmitters();
 void initIR();
