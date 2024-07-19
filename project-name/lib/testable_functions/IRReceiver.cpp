@@ -10,16 +10,16 @@ void IRReceiver::init() {
     rmt_rx_config.rmt_mode = RMT_MODE_RX;
     rmt_rx_config.channel = channel_;
     rmt_rx_config.gpio_num = gpio_num_;
-    rmt_rx_config.clk_div = RMT_CLK_DIV;
-    rmt_rx_config.mem_block_num = 1;
-    rmt_rx_config.flags = 0;
-    rmt_rx_config.rx_config.filter_en = true;
-    rmt_rx_config.rx_config.filter_ticks_thresh = 100;
-    rmt_rx_config.rx_config.idle_threshold = 12000;
+    rmt_rx_config.clk_div = rmtSettings::CLK_DIV;
+    rmt_rx_config.mem_block_num = rmtSettings::MEM_BLOCK_NUM;
+    rmt_rx_config.flags = rmtSettings::FLAGS;
+    rmt_rx_config.rx_config.filter_en = rmtSettings::RECEIVER_FILTER_ENABLE;
+    rmt_rx_config.rx_config.filter_ticks_thresh = rmtSettings::FILTER_TICKS_THRESH;
+    rmt_rx_config.rx_config.idle_threshold = rmtSettings::IDLE_THRESHOLD;
 
     // Configure RMT receiver
     ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
-    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, RMT_RX_BUFFER_SIZE, 0));
+    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, rmtSettings::RX_BUFFER_SIZE, 0));
 
     // Get ring buffer handle
     ESP_ERROR_CHECK(rmt_get_ringbuf_handle(channel_, &rb_));
@@ -41,7 +41,14 @@ void IRReceiver::init() {
 }
 
 void IRReceiver::receiveTask(void* param) {
-    IRReceiver* receiver = static_cast<IRReceiver*>(param);
+    if (param == nullptr) {
+        // Handle the error, e.g., log or throw an exception
+        Serial.println("Error: param is null in receiveTask");
+        return;
+    }
+
+    // IRReceiver* receiver = reinterpret_cast<IRReceiver*>(param);
+    std::unique_ptr<IRReceiver> receiver(reinterpret_cast<IRReceiver*>(param));
     receiver->handleReceivedData();
 }
 

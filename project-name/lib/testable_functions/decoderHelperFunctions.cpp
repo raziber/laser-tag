@@ -20,7 +20,6 @@ bool parseLeadingCode(rmt_item32_t* item) {
 }
 
 bool getBit(rmt_item32_t* item, uint16_t& data, int index){
-    //Serial.printf("duration0=%d, duration1=%d\n", item->duration0, item->duration1);
     if (parseLogic1(item)) {
         data |= 1 << index;
         return true;
@@ -48,9 +47,8 @@ bool checkInvertedBit(rmt_item32_t* item, uint16_t& data, int index){
     }
 }
 
-bool parseFrame(rmt_item32_t* items, uint16_t& address, uint16_t& command) {
+bool parseFrame(std::span<rmt_item32_t> items, uint16_t& address, uint16_t& command) {
     if (!parseLeadingCode(items++)) return false;
-    //Serial.printf("duration0=%d, duration1=%d\n", (items-1)->duration0, (items-1)->duration1);
 
     for (int i = 0; i < irProtocolSettings.address_bits; i++) 
         if(!getBit(items++, address, i)) return false;

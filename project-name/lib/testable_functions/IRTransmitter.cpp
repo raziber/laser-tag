@@ -11,7 +11,7 @@ void IRTransmitter::init() {
     rmt_tx_config.channel = channel_;
     rmt_tx_config.gpio_num = gpio_num_;
     rmt_tx_config.mem_block_num = 1;
-    rmt_tx_config.clk_div = RMT_CLK_DIV;
+    rmt_tx_config.clk_div = rmtSettings::CLK_DIV;
     rmt_tx_config.tx_config.loop_en = false;
     rmt_tx_config.tx_config.carrier_en = true;
     rmt_tx_config.tx_config.idle_output_en = true;

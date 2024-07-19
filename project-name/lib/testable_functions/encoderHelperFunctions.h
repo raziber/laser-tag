@@ -1,5 +1,4 @@
-#ifndef ENCODER_HELPER_FUNCTIONS_H
-#define ENCODER_HELPER_FUNCTIONS_H
+#pragma omce
 
 // functions that are general for all encoders
 
@@ -8,5 +7,3 @@ int addBitToItems(rmt_item32_t items[], uint32_t bit, uint32_t index);
 int buildDataBits(rmt_item32_t items[], uint32_t data, uint32_t length, bool includeInverted = false);
 bool buildPacket(rmt_item32_t items[], uint32_t address, uint32_t command);
 void printItem(rmt_item32_t item);
-
-#endif // ENCODER_HELPER_FUNCTIONS_H

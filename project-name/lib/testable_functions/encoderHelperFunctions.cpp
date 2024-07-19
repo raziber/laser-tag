@@ -33,7 +33,6 @@ int buildDataBits(rmt_item32_t items[], uint32_t data, uint32_t length, bool inc
     for (uint32_t i = 0; i < length; i++) {
         bool bit = data & (1 << i);
         index = addBitToItems(items, bit, index);
-        //Serial.printf("Data Bit: %d, High: %d, Low: %d\n", bit, items[index - 1].duration0, items[index - 1].duration1);
     }
 
     // Add inverted bits if necessary

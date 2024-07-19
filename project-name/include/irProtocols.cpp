@@ -1,5 +1,3 @@
-#pragma once
-
 ProtocolSettings getProtocolSettings(Protocol protocol) {
     switch (protocol) {
         case Protocol::NEC:
