@@ -3,32 +3,38 @@
 #include "IRReceiver.h"
 #include "IRTransmitter.h"
 
-// Create an array to hold IRReceiver instances
-IRReceiver* irReceivers[NUM_SENSORS];
+// vectors to hold receivers & transmitters instances
+std::vector<std::unique_ptr<IRReceiver>> irReceivers;
+std::vector<std::unique_ptr<IRTransmitter>> irTransmitters;
 
-// Create an array to hold IRTransmitter instances
-IRTransmitter* irTransmitters[NUM_SHOOTERS];
+void initReceivers(int& channel) {
+    for (int i = 0; i < NUM_SENSORS; ++i) {
+        if (channel >= RMT_CHANNEL_MAX) {
+            Serial.printf("Exceeded max RMT channels for receivers at channel %d\n", channel);
+            return;
+        }
+        irReceivers.push_back(std::make_unique<IRReceiver>((gpio_num_t)irSettings::SENSOR_PINS[i], (rmt_channel_t)channel++));
+        irReceivers.back()->init();
+    }
+}
+
+void initTransmitters(int& channel) {
+    for (int i = 0; i < NUM_SHOOTERS; ++i) {
+        if (channel >= RMT_CHANNEL_MAX) {
+            Serial.printf("Exceeded max RMT channels for transmitters at channel %d\n", channel);
+            return;
+        }
+        irTransmitters.push_back(std::make_unique<IRTransmitter>((gpio_num_t)irSettings::SHOOTER_PINS[i], (rmt_channel_t)channel++));
+        irTransmitters.back()->init();
+    }
+}
 
 void setup() {
     Serial.begin(115200);
 
     int channel = 0;
-
-    // Initialize each IR receiver
-    for (int i = 0; i < NUM_SENSORS; i++) {
-        irReceivers[i] = new IRReceiver((gpio_num_t)irSettings::SENSOR_PINS[i], (rmt_channel_t)channel++);
-        irReceivers[i]->init();
-    }
-
-    // Initialize each IR transmitter
-    for (int i = 0; i < NUM_SHOOTERS; i++) {
-        irTransmitters[i] = new IRTransmitter((gpio_num_t)irSettings::SHOOTER_PINS[i], (rmt_channel_t)channel++);
-        irTransmitters[i]->init();
-    }
-
-    if(channel > RMT_CHANNEL_MAX){
-        Serial.printf("exceeded max RMT channels, used %d channels\n", channel);
-    }
+    initReceivers(channel);
+    initTransmitters(channel);
 
     Serial.println("All IR receivers and transmitters initialized.");
 }

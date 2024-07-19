@@ -19,9 +19,9 @@ void printItem(rmt_item32_t item){
 
 int addBitToItems(rmt_item32_t items[], uint32_t bit, uint32_t index) {
     if (bit) {
-        items[index] = buildItem(PAYLOAD_ONE_DURATION_1, PAYLOAD_ONE_DURATION_0);
+        items[index] = buildItem(irProtocolSettings.payload_one_duration_1, irProtocolSettings.payload_one_duration_0);
     } else {
-        items[index] = buildItem(PAYLOAD_ZERO_DURATION_1, PAYLOAD_ZERO_DURATION_0);
+        items[index] = buildItem(irProtocolSettings.payload_zero_duration_1, irProtocolSettings.payload_zero_duration_0);
     }
     return index + 1;
 }
@@ -50,18 +50,18 @@ bool buildPacket(rmt_item32_t items[], uint32_t address, uint32_t command){
     uint32_t i = 0;
 
     // Build header
-    items[i++] = buildItem(LEADING_CODE_DURATION_1, LEADING_CODE_DURATION_0);
+    items[i++] = buildItem(irProtocolSettings.leading_code_duration_1, irProtocolSettings.leading_code_duration_0);
 
     // Build data bits
-    i += buildDataBits(&items[i], address, ADDRESS_BITS, HAS_INVERTED_ADDRESS_BOOL);
+    i += buildDataBits(&items[i], address, irProtocolSettings.address_bits, irProtocolSettings.has_inverted_address);
 
-    i += buildDataBits(&items[i], command, COMMAND_BITS, HAS_INVERTED_COMMAND_BOOL);
+    i += buildDataBits(&items[i], command, irProtocolSettings.command_bits, irProtocolSettings.has_inverted_command);
 
-    #ifdef HAS_STOP_BIT
+    if(irProtocolSettings.has_stop_bit){
         // Build stop bit
-        items[i++] = buildItem(STOP_BIT_DURATION_1, STOP_BIT_DURATION_0);
-    #endif
+        items[i++] = buildItem(irProtocolSettings.stop_bit_duration_1, irProtocolSettings.stop_bit_duration_0);
+    }
 
     // check success and return true if successful
-    return (i == FRAME_ITEM_COUNT);
+    return (i == irProtocolSettings.frame_item_count);
 }

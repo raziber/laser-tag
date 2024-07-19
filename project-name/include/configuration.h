@@ -22,11 +22,7 @@ namespace irSettings{
     constexpr std::array<int, 1> SHOOTER_PINS = {33};
 }
 
-
-// communication protocol, uncomment desired protocol
-// #define NEC
-#define SAMSUNG
-// #define LTTO
-// #define CUSTOM_PROTOCOL
+// Select your protocol here
+Protocol selectedProtocol = Protocol::SAMSUNG;
 
 #endif // CONFIGURATION_H

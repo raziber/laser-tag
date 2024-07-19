@@ -11,6 +11,8 @@
 #include "configuration.h"
 #include "configurationAdvanced.h"
 #include "configurationBackend.h"
+#include "irProtocolsConfig.h"
+#include "irProtocols.h"
 
 #include <vector>
 #include <array>
