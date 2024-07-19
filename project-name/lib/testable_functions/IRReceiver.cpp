@@ -12,10 +12,10 @@ void IRReceiver::init() {
     rmt_rx_config.gpio_num = gpio_num_;
     rmt_rx_config.clk_div = rmtSettings::CLK_DIV;
     rmt_rx_config.mem_block_num = rmtSettings::MEM_BLOCK_NUM;
-    rmt_rx_config.flags = rmtSettings::FLAGS;
-    rmt_rx_config.rx_config.filter_en = rmtSettings::RECEIVER_FILTER_ENABLE;
-    rmt_rx_config.rx_config.filter_ticks_thresh = rmtSettings::FILTER_TICKS_THRESH;
-    rmt_rx_config.rx_config.idle_threshold = rmtSettings::IDLE_THRESHOLD;
+    rmt_rx_config.flags = rmtSettings::receiver::FLAGS;
+    rmt_rx_config.rx_config.filter_en = rmtSettings::receiver::RECEIVER_FILTER_ENABLE;
+    rmt_rx_config.rx_config.filter_ticks_thresh = rmtSettings::receiver::FILTER_TICKS_THRESH;
+    rmt_rx_config.rx_config.idle_threshold = rmtSettings::receiver::IDLE_THRESHOLD;
 
     // Configure RMT receiver
     ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
@@ -57,9 +57,8 @@ void IRReceiver::handleReceivedData() {
     rmt_item32_t* items = nullptr;
     while (true) {
         // Wait for data to be received
-        items = (rmt_item32_t*) xRingbufferReceive(rb_, &rx_size, portMAX_DELAY);
+        items = static_cast<rmt_item32_t*>(xRingbufferReceive(rb_, &rx_size, portMAX_DELAY));
         if (items) {
-            // Serial.printf("Data received: %d items, on port: %d\n", rx_size / sizeof(rmt_item32_t), channel_);
             uint16_t address = 0, command = 0;
             if (rx_size == irProtocolSettings.frame_item_count * sizeof(rmt_item32_t)) {
                 if (parseFrame(items, address, command)) {
@@ -74,10 +73,10 @@ void IRReceiver::handleReceivedData() {
                     Serial.println("Failed to parse repeat frame.");
                 }
             } else {
-                Serial.printf("Received incomplete frame, only %d items...\n", rx_size/sizeof(rmt_item32_t));
+                Serial.printf("Received incomplete frame, only %d items...\n", rx_size / sizeof(rmt_item32_t));
             }
             // Return the items to the ring buffer
-            vRingbufferReturnItem(rb_, (void*) items);
+            vRingbufferReturnItem(rb_, (void*)items);
         } else {
             Serial.println("No data received.");
         }

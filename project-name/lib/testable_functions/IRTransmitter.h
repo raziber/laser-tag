@@ -1,6 +1,5 @@
 #ifdef EMBEDDED_BUILD
-#ifndef IR_TRANSMITTER_H
-#define IR_TRANSMITTER_H
+#pragma once
 
 class IRTransmitter {
 public:
@@ -13,5 +12,4 @@ private:
     rmt_channel_t channel_;
 };
 
-#endif // IR_TRANSMITTER_H
 #endif // EMBEDDED_BUILD

@@ -1,8 +1,5 @@
+#pragma once
 #ifdef EMBEDDED_BUILD
-#ifndef IR_RECEIVER_H
-#define IR_RECEIVER_H
-
-#define IR_RESOLUTION_HZ 1000000 // 1MHz resolution
 
 class IRReceiver {
 public:
@@ -18,5 +15,4 @@ private:
     void handleReceivedData();
 };
 
-#endif // IR_RECEIVER_H
 #endif // EMBEDDED_BUILD

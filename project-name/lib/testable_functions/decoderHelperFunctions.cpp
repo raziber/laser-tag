@@ -14,7 +14,7 @@ bool parseLogic1(rmt_item32_t* item) {
            checkInRange(item->duration1, irProtocolSettings.payload_one_duration_1);
 }
 
-bool parseLeadingCode(rmt_item32_t* item) {
+bool parseLeadingCode(std::unique_ptr<rmt_item32_t>& item) {
     return checkInRange(item->duration0, irProtocolSettings.leading_code_duration_0) &&
            checkInRange(item->duration1, irProtocolSettings.leading_code_duration_1);
 }
@@ -47,7 +47,7 @@ bool checkInvertedBit(rmt_item32_t* item, uint16_t& data, int index){
     }
 }
 
-bool parseFrame(std::span<rmt_item32_t> items, uint16_t& address, uint16_t& command) {
+bool parseFrame(rmt_item32_t* items, uint16_t& address, uint16_t& command) {
     if (!parseLeadingCode(items++)) return false;
 
     for (int i = 0; i < irProtocolSettings.address_bits; i++) 

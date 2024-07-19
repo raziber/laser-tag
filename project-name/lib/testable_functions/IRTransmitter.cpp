@@ -10,15 +10,15 @@ void IRTransmitter::init() {
     rmt_tx_config.rmt_mode = RMT_MODE_TX;
     rmt_tx_config.channel = channel_;
     rmt_tx_config.gpio_num = gpio_num_;
-    rmt_tx_config.mem_block_num = 1;
+    rmt_tx_config.mem_block_num = rmtSettings::MEM_BLOCK_NUM;
     rmt_tx_config.clk_div = rmtSettings::CLK_DIV;
-    rmt_tx_config.tx_config.loop_en = false;
-    rmt_tx_config.tx_config.carrier_en = true;
-    rmt_tx_config.tx_config.idle_output_en = true;
-    rmt_tx_config.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-    rmt_tx_config.tx_config.carrier_level = RMT_CARRIER_LEVEL_HIGH;
-    rmt_tx_config.tx_config.carrier_freq_hz = 38000; // 38kHz carrier frequency
-    rmt_tx_config.tx_config.carrier_duty_percent = 33;
+    rmt_tx_config.tx_config.loop_en = rmtSettings::trasmitter::LOOP_ENABLE;
+    rmt_tx_config.tx_config.carrier_en = rmtSettings::trasmitter::CARRIER_ENABLE;
+    rmt_tx_config.tx_config.idle_output_en = rmtSettings::trasmitter::OUTPUT_ENABLE;
+    rmt_tx_config.tx_config.idle_level = rmtSettings::trasmitter::IDLE_LEVEL;
+    rmt_tx_config.tx_config.carrier_level = rmtSettings::trasmitter::CARRIER_LEVEL;
+    rmt_tx_config.tx_config.carrier_freq_hz = rmtSettings::trasmitter::CARRIER_FREQ_HZ;
+    rmt_tx_config.tx_config.carrier_duty_percent = rmtSettings::trasmitter::CARRIER_DUTY_PERCENTAGE;
 
     // Configure RMT transmitter
     ESP_ERROR_CHECK(rmt_config(&rmt_tx_config));
@@ -35,7 +35,7 @@ void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {
 
     // Send RMT items
     ESP_ERROR_CHECK(rmt_write_items(channel_, items, irProtocolSettings.frame_item_count, true));
-    ESP_ERROR_CHECK(rmt_wait_tx_done(channel_, pdMS_TO_TICKS(1000))); // Wait for transmission to complete with a timeout of 1000ms
+    ESP_ERROR_CHECK(rmt_wait_tx_done(channel_, pdMS_TO_TICKS(rmtSettings::trasmitter::TIMEOUT_MS))); // Wait for transmission to complete with a timeout of 1000ms
 }
 
 #endif // EMBEDDED_BUILD
