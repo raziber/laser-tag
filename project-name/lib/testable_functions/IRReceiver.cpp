@@ -65,13 +65,13 @@ void IRReceiver::handleReceivedData() {
         items = static_cast<rmt_item32_t*>(xRingbufferReceive(rb_, &rx_size, portMAX_DELAY));
         if (items) {
             uint16_t address = 0, command = 0;
-            if (rx_size == irProtocolSettings.frame_item_count * sizeof(rmt_item32_t)) {
+            if (rx_size == irSettings::irProtocolSettings.frame_item_count * sizeof(rmt_item32_t)) {
                 if (parseFrame(items, address, command)) {
                     Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X\n", channel_, address, command);
                 } else {
                     Serial.println("Failed to parse frame.");
                 }
-            } else if (rx_size == irProtocolSettings.repeat_frame_item_count * sizeof(rmt_item32_t)) {
+            } else if (rx_size == irSettings::irProtocolSettings.repeat_frame_item_count * sizeof(rmt_item32_t)) {
                 if (parseRepeatFrame(items)) {
                     Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X (repeat)\n", channel_, address, command);
                 } else {

@@ -22,9 +22,9 @@ void printItem(rmt_item32_t item){
 
 int addBitToItems(rmt_item32_t items[], uint32_t bit, uint32_t index) {
     if (bit) {
-        items[index] = buildItem(irProtocolSettings.payload_one_duration_1, irProtocolSettings.payload_one_duration_0);
+        items[index] = buildItem(irSettings::irProtocolSettings.payload_one_duration_1, irSettings::irProtocolSettings.payload_one_duration_0);
     } else {
-        items[index] = buildItem(irProtocolSettings.payload_zero_duration_1, irProtocolSettings.payload_zero_duration_0);
+        items[index] = buildItem(irSettings::irProtocolSettings.payload_zero_duration_1, irSettings::irProtocolSettings.payload_zero_duration_0);
     }
     return index + 1;
 }
@@ -52,18 +52,18 @@ bool buildPacket(rmt_item32_t items[], uint32_t address, uint32_t command){
     uint32_t i = 0;
 
     // Build header
-    items[i++] = buildItem(irProtocolSettings.leading_code_duration_1, irProtocolSettings.leading_code_duration_0);
+    items[i++] = buildItem(irSettings::irProtocolSettings.leading_code_duration_1, irSettings::irProtocolSettings.leading_code_duration_0);
 
     // Build data bits
-    i += buildDataBits(&items[i], address, irProtocolSettings.address_bits, irProtocolSettings.has_inverted_address);
+    i += buildDataBits(&items[i], address, irSettings::irProtocolSettings.address_bits, irSettings::irProtocolSettings.has_inverted_address);
 
-    i += buildDataBits(&items[i], command, irProtocolSettings.command_bits, irProtocolSettings.has_inverted_command);
+    i += buildDataBits(&items[i], command, irSettings::irProtocolSettings.command_bits, irSettings::irProtocolSettings.has_inverted_command);
 
-    if(irProtocolSettings.has_stop_bit){
+    if(irSettings::irProtocolSettings.has_stop_bit){
         // Build stop bit
-        items[i++] = buildItem(irProtocolSettings.stop_bit_duration_1, irProtocolSettings.stop_bit_duration_0);
+        items[i++] = buildItem(irSettings::irProtocolSettings.stop_bit_duration_1, irSettings::irProtocolSettings.stop_bit_duration_0);
     }
 
     // check success and return true if successful
-    return (i == irProtocolSettings.frame_item_count);
+    return (i == irSettings::irProtocolSettings.frame_item_count);
 }

@@ -22,11 +22,11 @@ INPUT ONLY: GPIO 34 -> 39
 namespace irSettings{
     constexpr std::array<int, 1> SENSOR_PINS = {19};
     constexpr std::array<int, 1> SHOOTER_PINS = {33};
+
+    // Select your protocol here
+    constexpr Protocol selectedProtocol = Protocol::SAMSUNG;
 }
 
 namespace serialSettings{
     constexpr int BAUD_RATE = 115200;
 }
-
-// Select your protocol here
-Protocol selectedProtocol = Protocol::SAMSUNG;

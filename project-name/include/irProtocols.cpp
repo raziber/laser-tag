@@ -1,7 +1,7 @@
 #include "irProtocols.h"
 #include "irProtocolsConfig.h"
 
-ProtocolSettings getProtocolSettings(Protocol protocol) {
+constexpr ProtocolSettings getProtocolSettings(Protocol protocol) {
     switch (protocol) {
         case Protocol::NEC:
             return ProtocolSettings{

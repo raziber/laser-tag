@@ -7,7 +7,7 @@
 void initReceivers() {
     int channel = 0;
 
-    for (int i = 0; i < NUM_SENSORS; ++i) {
+    for (int i = 0; i < irSettings::NUM_SENSORS; ++i) {
         if (channel >= RMT_CHANNEL_MAX) {
             Serial.printf("Exceeded max RMT channels for receivers at channel %d\n", channel);
             return;
@@ -20,7 +20,7 @@ void initReceivers() {
 void initTransmitters() {
     int channel = 0;
     
-    for (int i = 0; i < NUM_SHOOTERS; ++i) {
+    for (int i = 0; i < irSettings::NUM_SHOOTERS; ++i) {
         if (channel >= RMT_CHANNEL_MAX) {
             Serial.printf("Exceeded max RMT channels for transmitters at channel %d\n", channel);
             return;

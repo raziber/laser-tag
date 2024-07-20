@@ -31,13 +31,13 @@ void IRTransmitter::init() {
 }
 
 void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {
-    rmt_item32_t items[irProtocolSettings.frame_item_count];
+    rmt_item32_t items[irSettings::irProtocolSettings.frame_item_count];
     if (!buildPacket(items, address, command)){
         Serial.printf("incosistent encoder indexing\n");
     }
 
     // Send RMT items
-    ESP_ERROR_CHECK(rmt_write_items(channel_, items, irProtocolSettings.frame_item_count, true));
+    ESP_ERROR_CHECK(rmt_write_items(channel_, items, irSettings::irProtocolSettings.frame_item_count, true));
     ESP_ERROR_CHECK(rmt_wait_tx_done(channel_, pdMS_TO_TICKS(rmtSettings::trasmitter::TIMEOUT_MS))); // Wait for transmission to complete with a timeout of 1000ms
 }
 
