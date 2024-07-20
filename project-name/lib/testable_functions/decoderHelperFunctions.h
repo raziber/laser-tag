@@ -1,5 +1,7 @@
 #pragma once
 
+#include "driver/rmt.h"
+
 // functions that are general for all decoders
 
 bool checkInRange(uint32_t duration, uint32_t spec);

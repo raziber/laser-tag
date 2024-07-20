@@ -1,5 +1,7 @@
 #include "decoderHelperFunctions.h"
 
+#include "configurationBackend.h"
+
 bool checkInRange(uint32_t duration, uint32_t spec) {
     return (duration < (spec + irProtocolSettings.decode_margin)) && (duration > (spec - irProtocolSettings.decode_margin));
 }

@@ -1,4 +1,5 @@
 #include "irProtocols.h"
+#include "irProtocolsConfig.h"
 
 ProtocolSettings getProtocolSettings(Protocol protocol) {
     switch (protocol) {

@@ -1,6 +1,9 @@
 #ifdef EMBEDDED_BUILD
 #include "IRTransmitter.h"
 #include "encoderHelperFunctions.h"
+#include "configurationAdvanced.h"
+#include "configurationBackend.h"
+#include <Arduino.h>
 
 IRTransmitter::IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel)
     : gpio_num_(gpio_num), channel_(channel) {}

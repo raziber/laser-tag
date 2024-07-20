@@ -1,5 +1,7 @@
 #pragma omce
 
+#include "driver/rmt.h"
+
 // functions that are general for all encoders
 
 rmt_item32_t buildItem(uint32_t high_us, uint32_t low_us);

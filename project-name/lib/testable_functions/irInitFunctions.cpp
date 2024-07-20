@@ -1,5 +1,9 @@
 #include "irInitFunctions.h"
 
+#include "configurationBackend.h"
+#include "driver/rmt.h"
+#include <Arduino.h>
+
 void initReceivers() {
     int channel = 0;
 

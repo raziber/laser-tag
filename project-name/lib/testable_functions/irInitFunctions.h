@@ -2,6 +2,8 @@
 
 #include "IRReceiver.h"
 #include "IRTransmitter.h"
+#include <vector>
+#include <memory>
 
 namespace IRDevices {
     // vectors to hold receivers & transmitters instances

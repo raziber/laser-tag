@@ -1,5 +1,7 @@
 #pragma once
 
+#include "driver/rmt.h"
+
 // RMT settings
 namespace rmtSettings{
     namespace receiver{

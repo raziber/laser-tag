@@ -1,7 +1,7 @@
 #ifdef EMBEDDED_BUILD
 
-#include "IRReceiver.h"
-#include "IRTransmitter.h"
+#include <Arduino.h>
+#include "configuration.h"
 #include "irInitFunctions.h"
 
 void setup() {

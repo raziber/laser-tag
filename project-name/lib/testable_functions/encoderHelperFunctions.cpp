@@ -1,5 +1,8 @@
 #include "encoderHelperFunctions.h"
 
+#include <Arduino.h>
+#include "configurationBackend.h"
+
 rmt_item32_t buildItem(uint32_t duration1, uint32_t duration0) {
     rmt_item32_t item;
 

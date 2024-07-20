@@ -2,6 +2,10 @@
 
 #include "IRReceiver.h"
 #include "decoderHelperFunctions.h"
+#include "configurationAdvanced.h"
+#include "configurationBackend.h"
+#include <Arduino.h>
+#include <memory>
 
 IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel)
     : gpio_num_(gpio_num), channel_(channel), rb_(nullptr) {}

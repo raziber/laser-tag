@@ -1,6 +1,8 @@
 #ifdef EMBEDDED_BUILD
 #pragma once
 
+#include "driver/rmt.h"
+
 class IRTransmitter {
 public:
     IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel);
