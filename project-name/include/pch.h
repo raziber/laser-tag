@@ -8,10 +8,10 @@
 #endif // EMBEDDED_BUILD
 
 #include "irProtocols.h"
+#include "irProtocolsConfig.h"
 #include "configuration.h"
 #include "configurationAdvanced.h"
 #include "configurationBackend.h"
-#include "irProtocolsConfig.h"
 
 #include <vector>
 #include <array>
