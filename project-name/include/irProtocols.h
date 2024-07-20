@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Protocol{
+enum class Protocol {
     NEC,
     SAMSUNG,
     LTTO,

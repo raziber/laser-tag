@@ -16,7 +16,7 @@ bool parseLogic1(rmt_item32_t* item) {
            checkInRange(item->duration1, irProtocolSettings.payload_one_duration_1);
 }
 
-bool parseLeadingCode(std::unique_ptr<rmt_item32_t>& item) {
+bool parseLeadingCode(rmt_item32_t* item) {
     return checkInRange(item->duration0, irProtocolSettings.leading_code_duration_0) &&
            checkInRange(item->duration1, irProtocolSettings.leading_code_duration_1);
 }
