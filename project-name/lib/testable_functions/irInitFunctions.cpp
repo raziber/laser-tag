@@ -4,6 +4,11 @@
 #include "driver/rmt.h"
 #include <Arduino.h>
 
+namespace IRDevices {
+    std::vector<std::unique_ptr<IRReceiver>> irReceivers;
+    std::vector<std::unique_ptr<IRTransmitter>> irTransmitters;
+}
+
 void initReceivers() {
     int channel = 0;
 

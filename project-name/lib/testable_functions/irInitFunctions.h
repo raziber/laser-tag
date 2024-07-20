@@ -7,8 +7,8 @@
 
 namespace IRDevices {
     // vectors to hold receivers & transmitters instances
-    std::vector<std::unique_ptr<IRReceiver>> irReceivers;
-    std::vector<std::unique_ptr<IRTransmitter>> irTransmitters;
+    extern std::vector<std::unique_ptr<IRReceiver>> irReceivers;
+    extern std::vector<std::unique_ptr<IRTransmitter>> irTransmitters;
 }
 
 void initReceivers();
