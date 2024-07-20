@@ -3,9 +3,11 @@
 #include <Arduino.h>
 #include "configuration.h"
 #include "irInitFunctions.h"
+#include "BT.h"
 
 void setup() {
     Serial.begin(serialSettings::BAUD_RATE);
+    bluetoothInit();
     initIR();
 }
 
