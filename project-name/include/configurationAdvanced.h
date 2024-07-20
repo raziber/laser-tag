@@ -1,5 +1,4 @@
-#ifndef CONFIGURATION_ADVANCED_H
-#define CONFIGURATION_ADVANCED_H
+#pragma once
 
 // RMT settings
 namespace rmtSettings{
@@ -25,5 +24,3 @@ namespace rmtSettings{
     constexpr int RX_BUFFER_SIZE = 1024;
     constexpr int MEM_BLOCK_NUM = 1;
 }
-
-#endif // CONFIGURATION_ADVANCED_H
