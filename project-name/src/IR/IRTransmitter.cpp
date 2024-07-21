@@ -24,6 +24,14 @@ void IRTransmitter::init() {
     rmt_tx_config.tx_config.carrier_freq_hz = rmtSettings::trasmitter::CARRIER_FREQ_HZ;
     rmt_tx_config.tx_config.carrier_duty_percent = rmtSettings::trasmitter::CARRIER_DUTY_PERCENTAGE;
 
+    // Check if the RMT driver is already installed and uninstall it if necessary
+    esp_err_t rmt_uninstall_res = rmt_driver_uninstall(rmt_tx_config.channel);
+    if (rmt_uninstall_res == ESP_OK || rmt_uninstall_res == ESP_ERR_INVALID_STATE) {
+        Utils::safeSerialPrintln("RMT driver uninstalled successfully or was not installed.");
+    } else {
+        Utils::safeSerialPrintf("Failed to uninstall RMT driver: %d\n", rmt_uninstall_res);
+    }
+
     // Configure RMT transmitter
     ESP_ERROR_CHECK(rmt_config(&rmt_tx_config));
     ESP_ERROR_CHECK(rmt_driver_install(rmt_tx_config.channel, 0, 0));
