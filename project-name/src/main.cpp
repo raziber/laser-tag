@@ -4,11 +4,15 @@
 #include "configuration.h"
 #include "irInitFunctions.h"
 #include "BT.h"
+#include "utils.h"
 
 void setup() {
     Serial.begin(serialSettings::BAUD_RATE);
-    bluetoothInit();
+    BT::bluetoothInit();
     initIR();
+
+    std::string address = "0c:c4:13:17:e4:88";
+    // BT::connectToDevice(address);
 }
 
 void loop() {
