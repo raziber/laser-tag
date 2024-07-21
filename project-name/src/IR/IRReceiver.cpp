@@ -6,6 +6,7 @@
 #include "configurationBackend.h"
 #include <Arduino.h>
 #include <memory>
+#include "utils.h"
 
 IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel)
     : gpio_num_(gpio_num), channel_(channel), rb_(nullptr) {}
@@ -31,7 +32,7 @@ void IRReceiver::init() {
 
     // Check if the ring buffer handle is valid
     if (rb_ == nullptr) {
-        Serial.println("Failed to get ring buffer handle.");
+        Utils::safeSerialPrintln("Failed to get ring buffer handle.");
         return;
     }
 
@@ -40,15 +41,15 @@ void IRReceiver::init() {
 
     // Create FreeRTOS task to handle received data
     if (xTaskCreate(receiveTask, "IR Receive Task", 2048, this, 10, nullptr) != pdPASS) {
-        Serial.println("Failed to create FreeRTOS task");
+        Utils::safeSerialPrintln("Failed to create FreeRTOS task");
     }
-    Serial.println("IR Receiver initialized.");
+        Utils::safeSerialPrintln("IR Receiver initialized.");
 }
 
 void IRReceiver::receiveTask(void* param) {
     if (param == nullptr) {
         // Handle the error, e.g., log or throw an exception
-        Serial.println("Error: param is null in receiveTask");
+        Utils::safeSerialPrintln("Error: param is null in receiveTask");
         return;
     }
 
@@ -67,23 +68,23 @@ void IRReceiver::handleReceivedData() {
             uint16_t address = 0, command = 0;
             if (rx_size == irSettings::irProtocolSettings.frame_item_count * sizeof(rmt_item32_t)) {
                 if (parseFrame(items, address, command)) {
-                    Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X\n", channel_, address, command);
+                    Utils::safeSerialPrintf("Channel: %d, Address: 0x%04X, Command: 0x%04X\n", channel_, address, command);
                 } else {
-                    Serial.println("Failed to parse frame.");
+                    Utils::safeSerialPrintln("Failed to parse frame.");
                 }
             } else if (rx_size == irSettings::irProtocolSettings.repeat_frame_item_count * sizeof(rmt_item32_t)) {
                 if (parseRepeatFrame(items)) {
-                    Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X (repeat)\n", channel_, address, command);
+                    Utils::safeSerialPrintf("Channel: %d, Address: 0x%04X, Command: 0x%04X (repeat)\n", channel_, address, command);
                 } else {
-                    Serial.println("Failed to parse repeat frame.");
+                    Utils::safeSerialPrintln("Failed to parse repeat frame.");
                 }
             } else {
-                Serial.printf("Received incomplete frame, only %d items...\n", rx_size / sizeof(rmt_item32_t));
+                Utils::safeSerialPrintf("Received incomplete frame, only %d items...\n", rx_size / sizeof(rmt_item32_t));
             }
             // Return the items to the ring buffer
             vRingbufferReturnItem(rb_, (void*)items);
         } else {
-            Serial.println("No data received.");
+            Utils::safeSerialPrintln("No data received.");
         }
     }
 }

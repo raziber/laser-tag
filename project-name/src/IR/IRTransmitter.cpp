@@ -4,6 +4,7 @@
 #include "configurationAdvanced.h"
 #include "configurationBackend.h"
 #include <Arduino.h>
+#include "utils.h"
 
 IRTransmitter::IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel)
     : gpio_num_(gpio_num), channel_(channel) {}
@@ -27,13 +28,13 @@ void IRTransmitter::init() {
     ESP_ERROR_CHECK(rmt_config(&rmt_tx_config));
     ESP_ERROR_CHECK(rmt_driver_install(rmt_tx_config.channel, 0, 0));
 
-    Serial.println("IR Transmitter initialized.");
+    Utils::safeSerialPrintln("IR Transmitter initialized.");
 }
 
 void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {
     rmt_item32_t items[irSettings::irProtocolSettings.frame_item_count];
     if (!buildPacket(items, address, command)){
-        Serial.printf("incosistent encoder indexing\n");
+        Utils::safeSerialPrintf("incosistent encoder indexing\n");
     }
 
     // Send RMT items

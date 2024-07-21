@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "configurationBackend.h"
+#include "utils.h"
 
 rmt_item32_t buildItem(uint32_t duration1, uint32_t duration0) {
     rmt_item32_t item;
@@ -17,7 +18,7 @@ rmt_item32_t buildItem(uint32_t duration1, uint32_t duration0) {
 }
 
 void printItem(rmt_item32_t item){
-    Serial.printf("level0: %d, duration0: %d, level1: %d, duration1: %d\n", item.level0, item.duration0, item.level1, item.duration1);
+    Utils::safeSerialPrintf("level0: %d, duration0: %d, level1: %d, duration1: %d\n", item.level0, item.duration0, item.level1, item.duration1);
 }
 
 int addBitToItems(rmt_item32_t items[], uint32_t bit, uint32_t index) {
