@@ -13,10 +13,10 @@ namespace BT {
 
 	bool connectToDevice(const std::string& address) {
 		if (!SerialBT->connect(address.c_str())) {
-			Utils::safeSerialPrintf("Failed to connect to %s. Make sure remote device is available and in range.", address.c_str());
+			Serial.printf("Failed to connect to %s. Make sure remote device is available and in range.", address.c_str());
 			return false;
 		} else {
-			Utils::safeSerialPrintf("Connected to %s successfully.", address.c_str());
+			Serial.printf("Connected to %s successfully.", address.c_str());
 			isConnected = true;
 			deviceAddress = address;
 			return true;
@@ -38,7 +38,7 @@ namespace BT {
 		while (true) {
 			if (isConnected && SerialBT->available()) {
 				String received = SerialBT->readString();
-				Utils::safeSerialPrintf("Received: %s", received.c_str());
+				Serial.printf("Received: %s", received.c_str());
 				SerialBT->println("Echo: " + received);  // Echo back to sender
 			}
 			vTaskDelay(10 / portTICK_PERIOD_MS);  // Yield to other tasks

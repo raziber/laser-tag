@@ -29,7 +29,7 @@ void IRTransmitter::init() {
     if (rmt_uninstall_res == ESP_OK || rmt_uninstall_res == ESP_ERR_INVALID_STATE) {
         Utils::safeSerialPrintln("RMT driver uninstalled successfully or was not installed.");
     } else {
-        Utils::safeSerialPrintf("Failed to uninstall RMT driver: %d\n", rmt_uninstall_res);
+        Serial.printf("Failed to uninstall RMT driver: %d\n", rmt_uninstall_res);
     }
 
     // Configure RMT transmitter
@@ -42,7 +42,7 @@ void IRTransmitter::init() {
 void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {
     rmt_item32_t items[irSettings::irProtocolSettings.frame_item_count];
     if (!buildPacket(items, address, command)){
-        Utils::safeSerialPrintf("incosistent encoder indexing\n");
+        Serial.printf("incosistent encoder indexing\n");
     }
 
     // Send RMT items
