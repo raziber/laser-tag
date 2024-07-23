@@ -35,14 +35,26 @@ namespace BT {
 	}
 
 	void bluetoothTask(void *parameter) {
+		// while (true) {
+		// 	if (isConnected && SerialBT->available()) {
+		// 		String received = SerialBT->readString();
+		// 		Serial.printf("Received: %s", received.c_str());
+		// 		SerialBT->println("Echo: " + received);  // Echo back to sender
+		// 	}
+		// 	vTaskDelay(10 / portTICK_PERIOD_MS);  // Yield to other tasks
+		// }
 		while (true) {
-			if (isConnected && SerialBT->available()) {
-				String received = SerialBT->readString();
-				Serial.printf("Received: %s", received.c_str());
-				SerialBT->println("Echo: " + received);  // Echo back to sender
-			}
-			vTaskDelay(10 / portTICK_PERIOD_MS);  // Yield to other tasks
-		}
+        if (SerialBT->available()) {
+            char received = SerialBT->read();
+            Serial.printf("%c", received);  // Print as character
+        }
+        if (Serial.available()) {
+            char received = Serial.read();
+            SerialBT->write(received);
+        }
+        // Reduce delay to 1 tick
+        vTaskDelay(1 / portTICK_PERIOD_MS);  // Yield to other tasks
+    }
 	}
 
 	void bluetoothInit() {
