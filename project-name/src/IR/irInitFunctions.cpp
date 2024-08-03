@@ -19,7 +19,6 @@ void initReceivers() {
             return;
         }
         IRDevices::irReceivers.push_back(std::make_unique<IRReceiver>((gpio_num_t)irSettings::SENSOR_PINS[i], (rmt_channel_t)channel++));
-        IRDevices::irReceivers.back()->init();
     }
 }
 
@@ -32,7 +31,6 @@ void initTransmitters() {
             return;
         }
         IRDevices::irTransmitters.push_back(std::make_unique<IRTransmitter>((gpio_num_t)irSettings::SHOOTER_PINS[i], (rmt_channel_t)channel++));
-        IRDevices::irTransmitters.back()->init();
     }
 }
 

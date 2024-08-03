@@ -6,7 +6,7 @@
 class IRReceiver {
 public:
     IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel);
-    void init();
+    ~IRReceiver();
     static void receiveTask(void* param);
 
 private:

@@ -6,10 +6,9 @@
 #include <Arduino.h>
 #include "utils.h"
 
+// constructor
 IRTransmitter::IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel)
-    : gpio_num_(gpio_num), channel_(channel) {}
-
-void IRTransmitter::init() {
+    : gpio_num_(gpio_num), channel_(channel) {
     rmt_config_t rmt_tx_config;
     rmt_tx_config.rmt_mode = RMT_MODE_TX;
     rmt_tx_config.channel = channel_;
@@ -37,6 +36,13 @@ void IRTransmitter::init() {
     ESP_ERROR_CHECK(rmt_driver_install(rmt_tx_config.channel, 0, 0));
 
     Utils::safeSerialPrintln("IR Transmitter initialized.");
+}
+
+// Destructor
+IRTransmitter::~IRTransmitter() {
+    // Uninstall the RMT driver
+    ESP_ERROR_CHECK(rmt_driver_uninstall(channel_));
+    Utils::safeSerialPrintln("IR Transmitter destroyed.");
 }
 
 void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {

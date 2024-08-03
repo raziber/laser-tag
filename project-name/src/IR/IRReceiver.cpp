@@ -8,10 +8,9 @@
 #include <memory>
 #include "utils.h"
 
+// constructor
 IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel)
-    : gpio_num_(gpio_num), channel_(channel), rb_(nullptr) {}
-
-void IRReceiver::init() {
+    : gpio_num_(gpio_num), channel_(channel), rb_(nullptr) {
     rmt_config_t rmt_rx_config;
     rmt_rx_config.rmt_mode = RMT_MODE_RX;
     rmt_rx_config.channel = channel_;
@@ -45,6 +44,22 @@ void IRReceiver::init() {
     }
         Utils::safeSerialPrintln("IR Receiver initialized.");
 }
+
+// destructor
+IRReceiver::~IRReceiver() {
+    // Stop the RMT receiver
+    ESP_ERROR_CHECK(rmt_rx_stop(channel_));
+
+    // Uninstall the RMT driver
+    ESP_ERROR_CHECK(rmt_driver_uninstall(channel_));
+
+    // Delete the ring buffer handle if it exists
+    if (rb_ != nullptr) {
+        vRingbufferDelete(rb_);
+    }
+
+    Utils::safeSerialPrintln("IR Receiver destroyed.");
+}    
 
 void IRReceiver::receiveTask(void* param) {
     if (param == nullptr) {
