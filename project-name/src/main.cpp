@@ -5,12 +5,18 @@
 #include "irInitFunctions.h"
 #include "BT.h"
 #include "utils.h"
+#include "protocolManager.h"
+#include "ProtocolTypes.h"
 
 void setup() {
     constexpr int BAUD_RATE = 115200;
     Serial.begin(BAUD_RATE);
     BT::bluetoothInit();
     initIR();
+
+    ProtocolManager protocolManager;
+    protocolManager.selectProtocol(Protocol::SAMSUNG);                  // Select a protocol at runtime
+    const IProtocolSettings* settings = protocolManager.getSettings();  // Retrieve settings
 
     // std::string address = "0c:c4:13:17:e4:88";
     // BT::connectToDevice(address);
