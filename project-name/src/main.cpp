@@ -7,7 +7,8 @@
 #include "utils.h"
 
 void setup() {
-    Serial.begin(serialSettings::BAUD_RATE);
+    constexpr int BAUD_RATE = 115200;
+    Serial.begin(BAUD_RATE);
     BT::bluetoothInit();
     initIR();
 

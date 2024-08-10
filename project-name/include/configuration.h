@@ -20,13 +20,9 @@ INPUT ONLY: GPIO 34 -> 39
 */
 // maximum RMT_CHANNEL_MAX channels
 namespace irSettings{
-    constexpr std::array<int, 1> SENSOR_PINS = {19};
-    constexpr std::array<int, 1> SHOOTER_PINS = {33};
+    constexpr std::array<int, 1> sensorPins = {19};
+    constexpr std::array<int, 1> shooterPins = {33};
 
     // Select your protocol here
     constexpr Protocol selectedProtocol = Protocol::SAMSUNG;
-}
-
-namespace serialSettings{
-    constexpr int BAUD_RATE = 115200;
 }

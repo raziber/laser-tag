@@ -18,7 +18,7 @@ void initReceivers() {
             Serial.printf("Exceeded max RMT channels for receivers at channel %d\n", channel);
             return;
         }
-        IRDevices::irReceivers.push_back(std::make_unique<IRReceiver>((gpio_num_t)irSettings::SENSOR_PINS[i], (rmt_channel_t)channel++));
+        IRDevices::irReceivers.push_back(std::make_unique<IRReceiver>((gpio_num_t)irSettings::sensorPins[i], (rmt_channel_t)channel++));
     }
 }
 
@@ -30,7 +30,7 @@ void initTransmitters() {
             Serial.printf("Exceeded max RMT channels for transmitters at channel %d\n", channel);
             return;
         }
-        IRDevices::irTransmitters.push_back(std::make_unique<IRTransmitter>((gpio_num_t)irSettings::SHOOTER_PINS[i], (rmt_channel_t)channel++));
+        IRDevices::irTransmitters.push_back(std::make_unique<IRTransmitter>((gpio_num_t)irSettings::shooterPins[i], (rmt_channel_t)channel++));
     }
 }
 

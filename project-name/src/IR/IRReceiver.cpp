@@ -2,29 +2,35 @@
 
 #include "IRReceiver.h"
 #include "decoderHelperFunctions.h"
-#include "configurationAdvanced.h"
 #include "configurationBackend.h"
 #include <Arduino.h>
 #include <memory>
 #include "utils.h"
+#include "IRConstants.h"
 
 // constructor
 IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel)
     : gpio_num_(gpio_num), channel_(channel), rb_(nullptr) {
+    constexpr bool RECEIVER_FILTER_ENABLE = true;
+    constexpr int IDLE_THRESHOLD = 1200;
+    constexpr int FILTER_TICKS_THRESH = 100;
+    constexpr int FLAGS = 0;
+
     rmt_config_t rmt_rx_config;
     rmt_rx_config.rmt_mode = RMT_MODE_RX;
     rmt_rx_config.channel = channel_;
     rmt_rx_config.gpio_num = gpio_num_;
-    rmt_rx_config.clk_div = rmtSettings::CLK_DIV;
-    rmt_rx_config.mem_block_num = rmtSettings::MEM_BLOCK_NUM;
-    rmt_rx_config.flags = rmtSettings::receiver::FLAGS;
-    rmt_rx_config.rx_config.filter_en = rmtSettings::receiver::RECEIVER_FILTER_ENABLE;
-    rmt_rx_config.rx_config.filter_ticks_thresh = rmtSettings::receiver::FILTER_TICKS_THRESH;
-    rmt_rx_config.rx_config.idle_threshold = rmtSettings::receiver::IDLE_THRESHOLD;
+    rmt_rx_config.clk_div = IRConstants::CLK_DIV;
+    rmt_rx_config.mem_block_num = IRConstants::MEM_BLOCK_NUM;
+    rmt_rx_config.flags = FLAGS;
+    rmt_rx_config.rx_config.filter_en = RECEIVER_FILTER_ENABLE;
+    rmt_rx_config.rx_config.filter_ticks_thresh = FILTER_TICKS_THRESH;
+    rmt_rx_config.rx_config.idle_threshold = IDLE_THRESHOLD;
 
     // Configure RMT receiver
+    constexpr int RX_BUFFER_SIZE = 1024;
     ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
-    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, rmtSettings::RX_BUFFER_SIZE, 0));
+    ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, RX_BUFFER_SIZE, 0));
 
     // Get ring buffer handle
     ESP_ERROR_CHECK(rmt_get_ringbuf_handle(channel_, &rb_));
