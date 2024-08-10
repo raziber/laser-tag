@@ -14,7 +14,7 @@ public:
     int getRepeatCodeDuration0() const override { return 9000; }
     int getRepeatCodeDuration1() const override { return 2250; }
     bool getHasStopBit() const override { return true; }
-    int getStopBit_Duration0() const override { return 700; }
+    int getStopBitDuration0() const override { return 700; }
     int getStopBitDuration1() const override { return 4500; }
     int getLeadingItemCount() const override { return 1; }
     int getRepeatFrameItemCount() const override { return 4; }

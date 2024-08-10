@@ -1,14 +1,14 @@
 #ifdef EMBEDDED_BUILD
 #include "IRTransmitter.h"
-#include "encoderHelperFunctions.h"
 #include "configurationBackend.h"
 #include <Arduino.h>
 #include "utils.h"
 #include "IRConstants.h"
 
 // constructor
-IRTransmitter::IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel)
-    : gpio_num_(gpio_num), channel_(channel) {
+IRTransmitter::IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel, const IProtocolSettings* protocolSettings, const Encoder* encoder)
+    : gpio_num_(gpio_num), channel_(channel), settings(protocolSettings), encoder(encoder) {
+
     constexpr bool LOOP_ENABLE = false;
     constexpr bool CARRIER_ENABLE = true;
     constexpr bool OUTPUT_ENABLE = true;
@@ -54,14 +54,14 @@ IRTransmitter::~IRTransmitter() {
 }
 
 void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {
-    rmt_item32_t items[irSettings::irProtocolSettings.frame_item_count];
-    if (!buildPacket(items, address, command)){
+    rmt_item32_t items[settings->getFrameItemCount()];
+    if (!encoder->buildPacket(items, address, command)){
         Serial.printf("incosistent encoder indexing\n");
     }
 
     // Send RMT items
     constexpr int TIMEOUT_MS = 1000;
-    ESP_ERROR_CHECK(rmt_write_items(channel_, items, irSettings::irProtocolSettings.frame_item_count, true));
+    ESP_ERROR_CHECK(rmt_write_items(channel_, items, settings->getFrameItemCount(), true));
     ESP_ERROR_CHECK(rmt_wait_tx_done(channel_, pdMS_TO_TICKS(TIMEOUT_MS))); // Wait for transmission to complete with a timeout of 1000ms
 }
 

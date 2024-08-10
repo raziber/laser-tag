@@ -10,7 +10,7 @@ namespace IRDevices {
     std::vector<std::unique_ptr<IRTransmitter>> irTransmitters;
 }
 
-void initReceivers() {
+void initReceivers(const Decoder* decoder, const IProtocolSettings* settings) {
     int channel = 0;
 
     for (int i = 0; i < irSettings::NUM_SENSORS; ++i) {
@@ -18,11 +18,11 @@ void initReceivers() {
             Serial.printf("Exceeded max RMT channels for receivers at channel %d\n", channel);
             return;
         }
-        IRDevices::irReceivers.push_back(std::make_unique<IRReceiver>((gpio_num_t)irSettings::sensorPins[i], (rmt_channel_t)channel++));
+        IRDevices::irReceivers.push_back(std::make_unique<IRReceiver>((gpio_num_t)irSettings::sensorPins[i], (rmt_channel_t)channel++, settings, decoder));
     }
 }
 
-void initTransmitters() {
+void initTransmitters(const Encoder* encoder, const IProtocolSettings* settings) {
     int channel = 0;
     
     for (int i = 0; i < irSettings::NUM_SHOOTERS; ++i) {
@@ -30,12 +30,12 @@ void initTransmitters() {
             Serial.printf("Exceeded max RMT channels for transmitters at channel %d\n", channel);
             return;
         }
-        IRDevices::irTransmitters.push_back(std::make_unique<IRTransmitter>((gpio_num_t)irSettings::shooterPins[i], (rmt_channel_t)channel++));
+        IRDevices::irTransmitters.push_back(std::make_unique<IRTransmitter>((gpio_num_t)irSettings::shooterPins[i], (rmt_channel_t)channel++, settings, encoder));
     }
 }
 
-void initIR(){
-    initReceivers();
-    initTransmitters();
+void initIR(const Encoder* encoder, const Decoder* decoder, const IProtocolSettings* settings){
+    initReceivers(decoder, settings);
+    initTransmitters(encoder, settings);
     Utils::safeSerialPrintln("All IR receivers and transmitters initialized.");
 }

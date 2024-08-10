@@ -10,7 +10,7 @@
 
 class ProtocolManager {
 public:
-    ProtocolManager() : currentProtocol(nullptr) {}
+    ProtocolManager() = default;
 
     void selectProtocol(Protocol protocol) {
         switch (protocol) {

@@ -14,7 +14,7 @@ public:
     virtual int getRepeatCodeDuration0() const = 0;
     virtual int getRepeatCodeDuration1() const = 0;
     virtual bool getHasStopBit() const = 0;
-    virtual int getStopBit_Duration0() const = 0;
+    virtual int getStopBitDuration0() const = 0;
     virtual int getStopBitDuration1() const = 0;
     virtual int getLeadingItemCount() const = 0;
     virtual int getRepeatFrameItemCount() const = 0;

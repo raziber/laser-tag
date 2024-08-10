@@ -1,7 +1,6 @@
 #ifdef EMBEDDED_BUILD
 
 #include "IRReceiver.h"
-#include "decoderHelperFunctions.h"
 #include "configurationBackend.h"
 #include <Arduino.h>
 #include <memory>
@@ -9,8 +8,9 @@
 #include "IRConstants.h"
 
 // constructor
-IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel)
-    : gpio_num_(gpio_num), channel_(channel), rb_(nullptr) {
+IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel, const IProtocolSettings* protocolSettings, const Decoder* decoder)
+    : gpio_num_(gpio_num), channel_(channel), settings(protocolSettings), decoder(decoder), rb_(nullptr) {
+        
     constexpr bool RECEIVER_FILTER_ENABLE = true;
     constexpr int IDLE_THRESHOLD = 1200;
     constexpr int FILTER_TICKS_THRESH = 100;
@@ -87,14 +87,14 @@ void IRReceiver::handleReceivedData() {
         items = static_cast<rmt_item32_t*>(xRingbufferReceive(rb_, &rx_size, portMAX_DELAY));
         if (items) {
             uint16_t address = 0, command = 0;
-            if (rx_size == irSettings::irProtocolSettings.frame_item_count * sizeof(rmt_item32_t)) {
-                if (parseFrame(items, address, command)) {
+            if (rx_size == settings->getFrameItemCount() * sizeof(rmt_item32_t)) {
+                if (decoder->parseFrame(items, address, command)) {
                     Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X\n", channel_, address, command);
                 } else {
                     Utils::safeSerialPrintln("Failed to parse frame.");
                 }
-            } else if (rx_size == irSettings::irProtocolSettings.repeat_frame_item_count * sizeof(rmt_item32_t)) {
-                if (parseRepeatFrame(items)) {
+            } else if (rx_size == settings->getRepeatFrameItemCount() * sizeof(rmt_item32_t)) {
+                if (decoder->parseRepeatFrame(items)) {
                     Serial.printf("Channel: %d, Address: 0x%04X, Command: 0x%04X (repeat)\n", channel_, address, command);
                 } else {
                     Utils::safeSerialPrintln("Failed to parse repeat frame.");

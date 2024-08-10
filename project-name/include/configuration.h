@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include "irProtocols.h"
 
 // -----------------------------------------------------
 // ----------------- IR communications -----------------
@@ -22,7 +21,4 @@ INPUT ONLY: GPIO 34 -> 39
 namespace irSettings{
     constexpr std::array<int, 1> sensorPins = {19};
     constexpr std::array<int, 1> shooterPins = {33};
-
-    // Select your protocol here
-    constexpr Protocol selectedProtocol = Protocol::SAMSUNG;
 }
