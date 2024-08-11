@@ -22,8 +22,4 @@ public:
     int getCommandBits() const override { return 8; }
     bool getHasInvertedAddress() const override { return true; }
     bool getHasInvertedCommand() const override { return true; }
-    int getAddressItemCount() const override { return 8 * 2; } // 8 * (1 + true)
-    int getCommandItemCount() const override { return 8 * 2; } // 8 * (1 + true)
-    int getStopItemCount() const override { return 1; } // true
-    int getFrameItemCount() const override { return 1 + (8 * 2) + (8 * 2) + 1; } // 1 + AddressItemCount + CommandItemCount + StopItemCount
 };

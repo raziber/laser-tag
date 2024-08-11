@@ -22,8 +22,9 @@ public:
     virtual int getCommandBits() const = 0;
     virtual bool getHasInvertedAddress() const = 0;
     virtual bool getHasInvertedCommand() const = 0;
-    virtual int getAddressItemCount() const = 0;
-    virtual int getCommandItemCount() const = 0;
-    virtual int getStopItemCount() const = 0;
-    virtual int getFrameItemCount() const = 0;
+
+    int getAddressItemCount() const;
+    int getCommandItemCount() const;
+    int getStopItemCount() const;
+    int getFrameItemCount() const;
 };
