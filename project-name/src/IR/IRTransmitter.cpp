@@ -9,13 +9,13 @@
 IRTransmitter::IRTransmitter(gpio_num_t gpio_num, rmt_channel_t channel, const IProtocolSettings* protocolSettings, const Encoder* encoder)
     : gpio_num_(gpio_num), channel_(channel), settings(protocolSettings), encoder(encoder) {
 
-    constexpr bool LOOP_ENABLE = false;
-    constexpr bool CARRIER_ENABLE = true;
-    constexpr bool OUTPUT_ENABLE = true;
-    constexpr rmt_idle_level_t IDLE_LEVEL = RMT_IDLE_LEVEL_LOW;
-    constexpr rmt_carrier_level_t CARRIER_LEVEL = RMT_CARRIER_LEVEL_HIGH;
-    constexpr int CARRIER_FREQ_HZ = 38000;
-    constexpr int CARRIER_DUTY_PERCENTAGE = 33;
+    static constexpr bool LOOP_ENABLE = false;
+    static constexpr bool CARRIER_ENABLE = true;
+    static constexpr bool OUTPUT_ENABLE = true;
+    static constexpr rmt_idle_level_t IDLE_LEVEL = RMT_IDLE_LEVEL_LOW;
+    static constexpr rmt_carrier_level_t CARRIER_LEVEL = RMT_CARRIER_LEVEL_HIGH;
+    static constexpr int CARRIER_FREQ_HZ = 38000;
+    static constexpr int CARRIER_DUTY_PERCENTAGE = 33;
 
     rmt_config_t rmt_tx_config;
     rmt_tx_config.rmt_mode = RMT_MODE_TX;
@@ -60,7 +60,7 @@ void IRTransmitter::sendCommand(uint32_t address, uint32_t command) {
     }
 
     // Send RMT items
-    constexpr int TIMEOUT_MS = 1000;
+    static constexpr int TIMEOUT_MS = 1000;
     ESP_ERROR_CHECK(rmt_write_items(channel_, items, settings->getFrameItemCount(), true));
     ESP_ERROR_CHECK(rmt_wait_tx_done(channel_, pdMS_TO_TICKS(TIMEOUT_MS))); // Wait for transmission to complete with a timeout of 1000ms
 }

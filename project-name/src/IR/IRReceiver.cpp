@@ -11,10 +11,10 @@
 IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel, const IProtocolSettings* protocolSettings, const Decoder* decoder)
     : gpio_num_(gpio_num), channel_(channel), settings(protocolSettings), decoder(decoder), rb_(nullptr) {
         
-    constexpr bool RECEIVER_FILTER_ENABLE = true;
-    constexpr int IDLE_THRESHOLD = 1200;
-    constexpr int FILTER_TICKS_THRESH = 100;
-    constexpr int FLAGS = 0;
+    static constexpr bool RECEIVER_FILTER_ENABLE = true;
+    static constexpr int IDLE_THRESHOLD = 1200;
+    static constexpr int FILTER_TICKS_THRESH = 100;
+    static constexpr int FLAGS = 0;
 
     rmt_config_t rmt_rx_config;
     rmt_rx_config.rmt_mode = RMT_MODE_RX;
@@ -28,7 +28,7 @@ IRReceiver::IRReceiver(gpio_num_t gpio_num, rmt_channel_t channel, const IProtoc
     rmt_rx_config.rx_config.idle_threshold = IDLE_THRESHOLD;
 
     // Configure RMT receiver
-    constexpr int RX_BUFFER_SIZE = 1024;
+    static constexpr int RX_BUFFER_SIZE = 1024;
     ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
     ESP_ERROR_CHECK(rmt_driver_install(rmt_rx_config.channel, RX_BUFFER_SIZE, 0));
 

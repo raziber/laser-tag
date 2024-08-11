@@ -3,6 +3,6 @@
 #include "configuration.h"
 
 namespace irSettings {
-    constexpr int NUM_SENSORS = irSettings::sensorPins.size();
-    constexpr int NUM_SHOOTERS = irSettings::shooterPins.size();
+    static constexpr int NUM_SENSORS = irSettings::sensorPins.size();
+    static constexpr int NUM_SHOOTERS = irSettings::shooterPins.size();
 }

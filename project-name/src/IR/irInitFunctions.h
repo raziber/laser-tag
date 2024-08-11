@@ -5,6 +5,7 @@
 #include "Encoder.h"
 #include "Decoder.h"
 #include "IProtocolSettings.h"
+#include "ProtocolTypes.h"
 #include <vector>
 #include <memory>
 
@@ -16,4 +17,4 @@ namespace IRDevices {
 
 void initReceivers(const Decoder* decoder, const IProtocolSettings* settings);
 void initTransmitters(const Encoder* encoder, const IProtocolSettings* settings);
-void initIR(const Encoder* encoder, const Decoder* decoder, const IProtocolSettings* settings);
+void IRInit(Protocol protocol);

@@ -1,6 +1,7 @@
 #include "irInitFunctions.h"
 
 #include "configurationBackend.h"
+#include "protocolManager.h"
 #include "driver/rmt.h"
 #include <Arduino.h>
 #include "utils.h"
@@ -34,8 +35,13 @@ void initTransmitters(const Encoder* encoder, const IProtocolSettings* settings)
     }
 }
 
-void initIR(const Encoder* encoder, const Decoder* decoder, const IProtocolSettings* settings){
-    initReceivers(decoder, settings);
-    initTransmitters(encoder, settings);
+void IRInit(Protocol protocol){
+    ProtocolManager protocolManager;
+    protocolManager.selectProtocol(protocol);                  // Select a protocol at runtime
+    const IProtocolSettings* settings = protocolManager.getSettings();  // Retrieve settings
+    auto decoder = std::make_unique<Decoder>(settings);
+    auto encoder = std::make_unique<Encoder>(settings);
+    initReceivers(decoder.get(), settings);
+    initTransmitters(encoder.get(), settings);
     Utils::safeSerialPrintln("All IR receivers and transmitters initialized.");
 }
