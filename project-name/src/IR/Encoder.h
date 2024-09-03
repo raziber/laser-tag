@@ -3,7 +3,6 @@
 #include "driver/rmt.h"
 #include "IProtocolSettings.h"
 
-// functions that are general for all encoders
 class Encoder {
 public:
     Encoder(const IProtocolSettings* settings);

@@ -11,4 +11,8 @@ namespace Utils {
 
     void safeSerialPrintln(const std::string& message);
     void safeSerialPrint(const std::string& message);
+
+    // Overload for single character printing
+    void safeSerialPrintln(char character);
+    void safeSerialPrint(char character);
 }

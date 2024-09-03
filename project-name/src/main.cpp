@@ -5,12 +5,15 @@
 #include "irInitFunctions.h"
 #include "BT.h"
 #include "ProtocolTypes.h"
+#include "GameManager.h"
 
 void setup() {
     static constexpr int BAUD_RATE = 115200;
     Serial.begin(BAUD_RATE);
     BT::begin();
     IRDevices::begin(Protocol::SAMSUNG);
+
+    GameManager::begin();
 
     // std::string address = "0c:c4:13:17:e4:88";
     // BT::connectToDevice(address);

@@ -3,8 +3,6 @@
 #include "driver/rmt.h"
 #include "IProtocolSettings.h"
 
-// functions that are general for all decoders
-
 class Decoder{
 public:
     Decoder(const IProtocolSettings* settings);
