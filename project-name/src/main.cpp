@@ -9,8 +9,8 @@
 void setup() {
     static constexpr int BAUD_RATE = 115200;
     Serial.begin(BAUD_RATE);
-    BT::bluetoothInit();
-    IRInit(Protocol::SAMSUNG);
+    BT::begin();
+    IRDevices::begin(Protocol::SAMSUNG);
 
     // std::string address = "0c:c4:13:17:e4:88";
     // BT::connectToDevice(address);

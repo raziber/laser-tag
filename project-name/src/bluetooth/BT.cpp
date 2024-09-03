@@ -65,7 +65,7 @@ namespace BT {
     }
 	}
 
-	void bluetoothInit() {
+	void begin() {
 		SerialBT = std::make_unique<BluetoothSerial>();  // Initialize the smart pointer
 		SerialBT->begin("ESP32_BT");  // Bluetooth device name
 		Utils::safeSerialPrintln("Bluetooth Started! Ready to pair.");

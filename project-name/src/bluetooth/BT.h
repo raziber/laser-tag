@@ -4,7 +4,7 @@
 
 namespace BT {
     void bluetoothTask(void *parameter);
-    void bluetoothInit();
+    void begin();
     void disconnectFromDevice();
     bool connectToDevice(const std::string& address);
 }

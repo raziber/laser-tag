@@ -18,7 +18,9 @@ INPUT ONLY: GPIO 34 -> 39
 
 */
 // maximum RMT_CHANNEL_MAX channels
-namespace irSettings{
-    static constexpr std::array<int, 1> sensorPins = {19};
-    static constexpr std::array<int, 1> shooterPins = {33};
+namespace IRConfig{
+    static constexpr int numReceiverPins = 2;
+    static constexpr int numTransmitterPins = 2;
+    static constexpr std::array<int, numReceiverPins> sensorPins = {19, 21};
+    static constexpr std::array<int, numTransmitterPins> shooterPins = {32, 33};
 }
