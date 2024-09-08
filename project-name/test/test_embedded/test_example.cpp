@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 #include <Arduino.h>
-#include "led.hpp"
+#include "irInitFunctions.h"
 
-TEST(setLED, test_if_sets_led_to_high){
+TEST(setLED, test_if_send_ir_signal_0xF3C2){
+    uint32_t address = 0xF3C2;
+    IRDevices::irTransmitters[0]->sendCommand(address, command);
     setLED(HIGH);
     pinMode(LED_BUILTIN, INPUT);
     ASSERT_EQ(digitalRead(LED_BUILTIN), HIGH);

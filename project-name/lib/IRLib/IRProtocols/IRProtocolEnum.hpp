@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Protocol {
+enum class IRProtocol {
     NEC,
     SAMSUNG,
     LTTO,
