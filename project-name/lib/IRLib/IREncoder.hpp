@@ -11,10 +11,10 @@ public:
     IREncoder(IRProtocol protocol);
     ~IREncoder();
 
-    std::vector<rmt_item32_t> sendCommand(uint32_t address, uint32_t command);
+    std::vector<rmt_item32_t> createPacket(uint32_t address, uint32_t command);
 private:
     std::unique_ptr<IRProtocolSettings> protocolSettings_;
-    
+
     uint32_t getBitLength(uint32_t value) const;
     rmt_item32_t createPulseItem(uint32_t duration1, uint32_t duration0) const;
     void appendPulseToPacket(std::vector<rmt_item32_t>& packet, bool isOne) const;

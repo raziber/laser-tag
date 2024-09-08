@@ -72,7 +72,7 @@ void IREncoder::appendInvertedDataToPacket(std::vector<rmt_item32_t>& packet, ui
     appendDataToPacket(packet, ~data);
 }
 
-std::vector<rmt_item32_t> IREncoder::sendCommand(uint32_t address, uint32_t command){
+std::vector<rmt_item32_t> IREncoder::createPacket(uint32_t address, uint32_t command){
     // create packet to send
     std::vector<rmt_item32_t> packet;
 
