@@ -2,7 +2,7 @@
 
 #include "IRProtocolSettings.hpp"
 
-class NECProtocolSettings : public IProtocolSettings {
+class NECProtocolSettings : public IRProtocolSettings {
 public:
     u_int32_t getDecodeMargin() const override { return 300; }
     u_int32_t getLeadingCodeDuration0() const override { return 9000; }
@@ -22,4 +22,5 @@ public:
     u_int32_t getCommandBits() const override { return 8; }
     bool getHasInvertedAddress() const override { return true; }
     bool getHasInvertedCommand() const override { return true; }
+    bool isLsbFirst() const override { return true; }
 };

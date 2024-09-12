@@ -22,6 +22,7 @@ public:
     virtual u_int32_t getCommandBits() const = 0;
     virtual bool getHasInvertedAddress() const = 0;
     virtual bool getHasInvertedCommand() const = 0;
+    virtual bool isLsbFirst() const = 0;
 
     u_int32_t getAddressItemCount() const;
     u_int32_t getCommandItemCount() const;

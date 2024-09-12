@@ -22,4 +22,5 @@ public:
     u_int32_t getCommandBits() const override { return 0; }
     bool getHasInvertedAddress() const override { return false; }
     bool getHasInvertedCommand() const override { return false; }
+    bool isLsbFirst() const override { return true; }
 };

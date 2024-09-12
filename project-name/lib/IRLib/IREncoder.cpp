@@ -107,10 +107,20 @@ esp_err_t IREncoder::appendStopToPacket(std::vector<rmt_item32_t>& packet) const
 }
 
 esp_err_t IREncoder::appendDataToPacket(std::vector<rmt_item32_t>& packet, uint32_t data) const {
+    bool isLsbFirst = protocolSettings_->isLsbFirst();  // Check if the protocol sends LSB first
     uint32_t length = getBitLength(data);
     
     for (uint32_t i = 0; i < length; i++) {
-        bool bit = data & (1 << i);
+        bool bit;
+        
+        // Determine bit based on protocol setting (LSB first or MSB first)
+        if (isLsbFirst) {
+            bit = data & (1 << i);
+        } else {
+            bit = data & (1 << (length - 1 - i));
+        }
+
+        // Append pulse for the bit
         esp_err_t err = appendPulseToPacket(packet, bit);
         if (err != ESP_OK) {
             ESP_LOGE("IREncoder", "Failed to append pulse to packet at bit %d", i);
