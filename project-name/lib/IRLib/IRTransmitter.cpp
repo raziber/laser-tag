@@ -1,70 +1,156 @@
 #include "IRTransmitter.hpp"
 
 IRTransmitter::IRTransmitter(const std::vector<int>& ports, std::unique_ptr<IREncoder> encoder, std::unique_ptr<IRProtocolSettings> protocolSettings, int memBlockNum, int clkDiv)
-        : ports_(ports), encoder_(std::move(encoder)), protocolSettings_(std::move(protocolSettings)), memBlockNum_(memBlockNum), clkDiv_(clkDiv) {
-    for (int port : ports_) {
-        configurePort(port, memBlockNum, clkDiv);
+        : gpioPorts_(ports), encoder_(std::move(encoder)), protocolSettings_(std::move(protocolSettings)), memBlockNum_(memBlockNum), clkDiv_(clkDiv) {
+    
+    for (std::size_t i = 0; i < gpioPorts_.size(); ++i) {
+        esp_err_t err = configurePort(i, memBlockNum, clkDiv);
+        if(err != ESP_OK){
+            ESP_LOGE("IRTransmitter", "Failed to configure port %d: %s", i, esp_err_to_name(err));
+            // keep configuring other ports
+        }
     }
 }
 
 IRTransmitter::~IRTransmitter() {
-    for (int port : ports_) {
-        rmt_driver_uninstall(static_cast<rmt_channel_t>(port));
+    for (std::size_t i = 0; i < gpioPorts_.size(); ++i) {
+        esp_err_t err = uninstallRmtDriver(static_cast<rmt_channel_t>(i));
+        if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+            ESP_LOGW("IRTransmitter", "Failed to uninstall RMT driver for port %d: %s", i, esp_err_to_name(err));
+        }    
     }
 }
 
-void IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) const {
+esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) const {
     std::vector<rmt_item32_t> packet = encoder_->createPacket(address, command);
-
-    for (int port : ports_) {
-        ESP_ERROR_CHECK(rmt_write_items(static_cast<rmt_channel_t>(port), packet.data(), packet.size(), true));
-        static constexpr int TIMEOUT_MS = 1000;
-        ESP_ERROR_CHECK(rmt_wait_tx_done(static_cast<rmt_channel_t>(port), pdMS_TO_TICKS(TIMEOUT_MS)));
+    if (packet.empty()) {
+        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission");
+        return ESP_ERR_NO_MEM;  // or an appropriate error code
     }
+
+    static constexpr int MAX_RETRIES = 3;
+    static constexpr int TIMEOUT_MS = 200;
+    esp_err_t final_result = ESP_OK;
+
+    for (size_t i = 0; i < gpioPorts_.size(); ++i) {
+        int retries = MAX_RETRIES;
+        esp_err_t err;
+
+        do {
+            err = rmt_write_items(static_cast<rmt_channel_t>(i), packet.data(), packet.size(), true);
+            if (err == ESP_OK) {
+                err = rmt_wait_tx_done(static_cast<rmt_channel_t>(i), pdMS_TO_TICKS(TIMEOUT_MS));
+                if (err == ESP_OK) {
+                    break;  // Success, exit retry loop
+                }
+            }
+            ESP_LOGW("IRTransmitter", "Transmission failed on channel %d, retrying... (%d retries left)", i, retries);
+        } while (retries-- > 0);
+
+        if (err != ESP_OK) {
+            ESP_LOGE("IRTransmitter", "Failed to transmit on channel %d after retries: %s", i, esp_err_to_name(err));
+            final_result = err;
+        }
+    }
+
+    return final_result;
 }
 
-void IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command, uint32_t portId) const {
+esp_err_t IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command, uint32_t portIndex) const {
+    // Validate the port index
+    if (portIndex >= gpioPorts_.size()) {
+        ESP_LOGE("IRTransmitter", "Invalid port index: %d", portIndex);
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    // Create the packet
     std::vector<rmt_item32_t> packet = encoder_->createPacket(address, command);
+    if (packet.empty()) {
+        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission");
+        return ESP_ERR_NO_MEM;
+    }
 
-    ESP_ERROR_CHECK(rmt_write_items(static_cast<rmt_channel_t>(portId), packet.data(), packet.size(), true));
-    static constexpr int TIMEOUT_MS = 1000;
-    ESP_ERROR_CHECK(rmt_wait_tx_done(static_cast<rmt_channel_t>(portId), pdMS_TO_TICKS(TIMEOUT_MS)));
+    static constexpr int MAX_RETRIES = 3;  // Maximum retries for transmission
+    static constexpr int TIMEOUT_MS = 200; // Transmission timeout (in milliseconds)
+    esp_err_t err = ESP_FAIL;
+
+    // Attempt to transmit with retries
+    int retries = MAX_RETRIES;
+    do {
+        err = rmt_write_items(static_cast<rmt_channel_t>(portIndex), packet.data(), packet.size(), true);
+        if (err == ESP_OK) {
+            // Wait for the transmission to complete with the timeout
+            err = rmt_wait_tx_done(static_cast<rmt_channel_t>(portIndex), pdMS_TO_TICKS(TIMEOUT_MS));
+            if (err == ESP_OK) {
+                break;  // Success, exit retry loop
+            } else {
+                ESP_LOGW("IRTransmitter", "Transmission timeout on port %d, retrying... (%d retries left)", portIndex, retries);
+            }
+        } else {
+            ESP_LOGW("IRTransmitter", "Failed to write items to port %d, retrying... (%d retries left)", portIndex, retries);
+        }
+    } while (retries-- > 0);
+
+    if (err != ESP_OK) {
+        ESP_LOGE("IRTransmitter", "Failed to transmit on port %d after retries: %s", portIndex, esp_err_to_name(err));
+    }
+
+    return err;
 }
 
-void IRTransmitter::configurePort(int port, int memBlockNum, int clkDiv){
-    static constexpr bool LOOP_ENABLE = false;
-    static constexpr bool CARRIER_ENABLE = true;
-    static constexpr bool OUTPUT_ENABLE = true;
-    static constexpr rmt_idle_level_t IDLE_LEVEL = RMT_IDLE_LEVEL_LOW;
-    static constexpr rmt_carrier_level_t CARRIER_LEVEL = RMT_CARRIER_LEVEL_HIGH;
-    static constexpr int CARRIER_FREQ_HZ = 38000;
-    static constexpr int CARRIER_DUTY_PERCENTAGE = 33;
+esp_err_t IRTransmitter::configurePort(int portIndex, int memBlockNum, int clkDiv) {
+    // Validate port index
+    if (portIndex >= gpioPorts_.size()) {
+        ESP_LOGE("IRTransmitter", "Invalid port index: %d", portIndex);
+        return ESP_ERR_INVALID_ARG;
+    }
 
     rmt_config_t rmt_tx_config;
     rmt_tx_config.rmt_mode = RMT_MODE_TX;
-    rmt_tx_config.channel = static_cast<rmt_channel_t>(port);           // basically ID from 0 to 7 but of type rmt_channel_t
-    rmt_tx_config.gpio_num = gpio[port];         // physical port to connect TODO: fix this
+    rmt_tx_config.channel = static_cast<rmt_channel_t>(portIndex);
+    rmt_tx_config.gpio_num = static_cast<gpio_num_t>(gpioPorts_[portIndex]);
     rmt_tx_config.mem_block_num = memBlockNum;
     rmt_tx_config.clk_div = clkDiv;
-    rmt_tx_config.tx_config.loop_en = LOOP_ENABLE;
-    rmt_tx_config.tx_config.carrier_en = CARRIER_ENABLE;
-    rmt_tx_config.tx_config.idle_output_en = OUTPUT_ENABLE;
-    rmt_tx_config.tx_config.idle_level = IDLE_LEVEL;
-    rmt_tx_config.tx_config.carrier_level = CARRIER_LEVEL;
-    rmt_tx_config.tx_config.carrier_freq_hz = CARRIER_FREQ_HZ;
-    rmt_tx_config.tx_config.carrier_duty_percent = CARRIER_DUTY_PERCENTAGE;
 
-    manageRmtDriver(rmt_tx_config.channel);
-    ESP_ERROR_CHECK(rmt_config(&rmt_tx_config));
-    ESP_ERROR_CHECK(rmt_driver_install(rmt_tx_config.channel, 0, 0));
+    // Attempt to uninstall the driver and continue if uninstall is non-critical
+    esp_err_t err = uninstallRmtDriver(rmt_tx_config.channel);
+    if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+        ESP_LOGW("IRTransmitter", "Failed to uninstall RMT driver for port %d: %s", portIndex, esp_err_to_name(err));
+        // Optionally track this error and continue
+    }
+
+    // Configure the RMT channel
+    err = rmt_config(&rmt_tx_config);
+    if (err != ESP_OK) {
+        ESP_LOGE("IRTransmitter", "Failed to configure RMT for port %d: %s", portIndex, esp_err_to_name(err));
+        return err;
+    }
+
+    // Install the RMT driver
+    err = rmt_driver_install(rmt_tx_config.channel, 0, 0);
+    if (err != ESP_OK) {
+        ESP_LOGE("IRTransmitter", "Failed to install RMT driver for port %d: %s", portIndex, esp_err_to_name(err));
+        return err;
+    }
+
+    ESP_LOGI("IRTransmitter", "Port %d configured successfully", portIndex);
+    return ESP_OK;
 }
 
-void IRTransmitter::manageRmtDriver(rmt_channel_t channel){
-    // Check if the RMT driver is already installed and uninstall it if necessary
-    esp_err_t rmt_uninstall_res = rmt_driver_uninstall(channel);
-    if (rmt_uninstall_res == ESP_OK || rmt_uninstall_res == ESP_ERR_INVALID_STATE) {
-        Serial.println("RMT driver uninstalled successfully or was not installed.");
+esp_err_t IRTransmitter::uninstallRmtDriver(rmt_channel_t channel) {
+    // Attempt to uninstall the RMT driver
+    esp_err_t err = rmt_driver_uninstall(channel);
+
+    // Handle success or specific errors
+    if (err == ESP_OK) {
+        ESP_LOGI("IRTransmitter", "RMT driver uninstalled successfully for channel %d", channel);
+    } else if (err == ESP_ERR_INVALID_STATE) {
+        ESP_LOGW("IRTransmitter", "RMT driver for channel %d was not installed", channel);
+        return ESP_OK;  // Return OK since the driver wasn't installed, so no issue
     } else {
-        Serial.printf("Failed to uninstall RMT driver: %d\n", rmt_uninstall_res);
+        ESP_LOGE("IRTransmitter", "Failed to uninstall RMT driver for channel %d: %s", channel, esp_err_to_name(err));
+        return err;  // Return the actual error for the caller to handle
     }
+
+    return ESP_OK;  // Return OK if uninstalled successfully
 }
