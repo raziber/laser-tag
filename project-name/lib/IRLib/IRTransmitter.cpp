@@ -42,7 +42,7 @@ void IRTransmitter::configurePort(int port, int memBlockNum, int clkDiv){
 
     rmt_config_t rmt_tx_config;
     rmt_tx_config.rmt_mode = RMT_MODE_TX;
-    rmt_tx_config.channel = port;           // basically ID from 0 to 7
+    rmt_tx_config.channel = static_cast<rmt_channel_t>(port);           // basically ID from 0 to 7 but of type rmt_channel_t
     rmt_tx_config.gpio_num = gpio[port];         // physical port to connect TODO: fix this
     rmt_tx_config.mem_block_num = memBlockNum;
     rmt_tx_config.clk_div = clkDiv;

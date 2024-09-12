@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IProtocolSettings.h"
+#include "IRProtocolSettings.hpp"
 
-class LTTOProtocolSettings : public IProtocolSettings {
+class LTTOProtocolSettings : public IRProtocolSettings {
 public:
     u_int32_t getDecodeMargin() const override { return 100; }
     u_int32_t getLeadingCodeDuration0() const override { return 2400; }

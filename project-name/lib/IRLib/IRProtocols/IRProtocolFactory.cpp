@@ -1,24 +1,24 @@
 #include "IRProtocolFactory.hpp"
 #include <stdexcept>
 
-#include "IRProtocolsSettings/NECProtocolSettings.hpp"
-#include "IRProtocolsSettings/LTTOProtocolSettings.hpp"
-#include "IRProtocolsSettings/SamsungProtocolSettings.hpp"
-#include "IRProtocolsSettings/CustomProtocolSettings.hpp"
+#include "NECProtocolSettings.hpp"
+#include "LTTOProtocolSettings.hpp"
+#include "SamsungProtocolSettings.hpp"
+#include "CustomProtocolSettings.hpp"
 
-static std::unique_ptr<IRProtocolSettings> IRProtocolFactory::createProtocolSettings(IRProtocol protocol){
+std::unique_ptr<IRProtocolSettings> IRProtocolFactory::createProtocolSettings(IRProtocol protocol){
     switch (protocol) {
         case IRProtocol::NEC:
             return std::make_unique<NECProtocolSettings>();
         // Add more cases for other protocols
         case IRProtocol::SAMSUNG:
-            return std::make_unique<SAMSUNGProtocolSettings>();
+            return std::make_unique<SamsungProtocolSettings>();
             break;
         case IRProtocol::LTTO:
             return std::make_unique<LTTOProtocolSettings>();
             break;
         case IRProtocol::CUSTOM:
-            return std::make_unique<CUSTOMProtocolSettings>();
+            return std::make_unique<CustomProtocolSettings>();
             break;
         default:
             throw std::invalid_argument("Unsupported protocol");
@@ -26,5 +26,3 @@ static std::unique_ptr<IRProtocolSettings> IRProtocolFactory::createProtocolSett
 
     return nullptr;
 }
-
-

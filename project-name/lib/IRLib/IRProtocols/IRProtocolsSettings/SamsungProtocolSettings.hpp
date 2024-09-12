@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IProtocolSettings.h"
+#include "IRProtocolSettings.hpp"
 
-class SamsungProtocolSettings : public IProtocolSettings {
+class SamsungProtocolSettings : public IRProtocolSettings {
 public:
     u_int32_t getDecodeMargin() const override { return 300; }
     u_int32_t getLeadingCodeDuration0() const override { return 4600; }

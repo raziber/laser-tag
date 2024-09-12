@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IRProtocolSettings.h"
+#include "IRProtocolSettings.hpp"
 
 class NECProtocolSettings : public IProtocolSettings {
 public:
