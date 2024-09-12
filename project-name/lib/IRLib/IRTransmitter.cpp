@@ -22,10 +22,12 @@ IRTransmitter::~IRTransmitter() {
 }
 
 esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) const {
-    std::vector<rmt_item32_t> packet = encoder_->createPacket(address, command);
-    if (packet.empty()) {
-        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission");
-        return ESP_ERR_NO_MEM;  // or an appropriate error code
+    std::unique_ptr<std::vector<rmt_item32_t>> packet;
+    esp_err_t err = encoder_->createPacket(packet, address, command);
+    
+    if (err != ESP_OK || !packet || packet->empty()) {
+        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission: %s", esp_err_to_name(err));
+        return ESP_ERR_NO_MEM;  // or another appropriate error code depending on the issue
     }
 
     static constexpr int MAX_RETRIES = 3;
@@ -34,27 +36,32 @@ esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) 
 
     for (size_t i = 0; i < gpioPorts_.size(); ++i) {
         int retries = MAX_RETRIES;
-        esp_err_t err;
-
+        
         do {
-            err = rmt_write_items(static_cast<rmt_channel_t>(i), packet.data(), packet.size(), true);
+            // Write items to the RMT channel
+            err = rmt_write_items(static_cast<rmt_channel_t>(i), packet->data(), packet->size(), true);
+            
             if (err == ESP_OK) {
+                // Wait for the transmission to finish
                 err = rmt_wait_tx_done(static_cast<rmt_channel_t>(i), pdMS_TO_TICKS(TIMEOUT_MS));
                 if (err == ESP_OK) {
                     break;  // Success, exit retry loop
                 }
             }
+
             ESP_LOGW("IRTransmitter", "Transmission failed on channel %d, retrying... (%d retries left)", i, retries);
+
         } while (retries-- > 0);
 
         if (err != ESP_OK) {
             ESP_LOGE("IRTransmitter", "Failed to transmit on channel %d after retries: %s", i, esp_err_to_name(err));
-            final_result = err;
+            final_result = err;  // Track the last error encountered
         }
     }
 
-    return final_result;
+    return final_result;  // Return the final result
 }
+
 
 esp_err_t IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command, uint32_t portIndex) const {
     // Validate the port index
@@ -64,24 +71,26 @@ esp_err_t IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command
     }
 
     // Create the packet
-    std::vector<rmt_item32_t> packet = encoder_->createPacket(address, command);
-    if (packet.empty()) {
-        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission");
-        return ESP_ERR_NO_MEM;
+    std::unique_ptr<std::vector<rmt_item32_t>> packet;
+    esp_err_t err = encoder_->createPacket(packet, address, command);
+
+    if (err != ESP_OK || !packet || packet->empty()) {
+        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission on port %d: %s", portIndex, esp_err_to_name(err));
+        return ESP_ERR_NO_MEM;  // or the appropriate error returned from createPacket
     }
 
     static constexpr int MAX_RETRIES = 3;  // Maximum retries for transmission
     static constexpr int TIMEOUT_MS = 200; // Transmission timeout (in milliseconds)
-    esp_err_t err = ESP_FAIL;
-
+    
     // Attempt to transmit with retries
     int retries = MAX_RETRIES;
     do {
-        err = rmt_write_items(static_cast<rmt_channel_t>(portIndex), packet.data(), packet.size(), true);
+        err = rmt_write_items(static_cast<rmt_channel_t>(portIndex), packet->data(), packet->size(), true);
         if (err == ESP_OK) {
             // Wait for the transmission to complete with the timeout
             err = rmt_wait_tx_done(static_cast<rmt_channel_t>(portIndex), pdMS_TO_TICKS(TIMEOUT_MS));
             if (err == ESP_OK) {
+                ESP_LOGI("IRTransmitter", "Successfully transmitted on port %d", portIndex);
                 break;  // Success, exit retry loop
             } else {
                 ESP_LOGW("IRTransmitter", "Transmission timeout on port %d, retrying... (%d retries left)", portIndex, retries);
