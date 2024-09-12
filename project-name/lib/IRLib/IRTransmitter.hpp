@@ -21,5 +21,5 @@ private:
     int clkDiv_;
 
     esp_err_t configurePort(int port, int memBlockNum, int clkDiv);
-    esp_err_t IRTransmitter::uninstallRmtDriver(rmt_channel_t channel);
+    esp_err_t uninstallRmtDriver(rmt_channel_t channel);
 };
