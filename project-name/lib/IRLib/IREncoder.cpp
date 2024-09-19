@@ -140,11 +140,11 @@ esp_err_t IREncoder::appendInvertedDataToPacket(std::vector<rmt_item32_t>& packe
     return ESP_OK;
 }
 
-esp_err_t IREncoder::createPacket(std::unique_ptr<std::vector<rmt_item32_t>>& packet, uint32_t address, uint32_t command) {
+esp_err_t IREncoder::createPacket(std::vector<rmt_item32_t>& packet, uint32_t address, uint32_t command) {
     ESP_LOGI("IREncoder", "Creating packet for address: 0x%x, command: 0x%x", address, command);
 
     // Validate the input
-    esp_err_t err = validatePacketInput(packet, address, command);
+    esp_err_t err = validatePacketInput(address, command);
     if (err != ESP_OK) return err;
 
     // Initialize the packet
@@ -152,14 +152,14 @@ esp_err_t IREncoder::createPacket(std::unique_ptr<std::vector<rmt_item32_t>>& pa
     if (err != ESP_OK) return err;
 
     // Build the packet
-    err = assemblePacket(*packet, address, command);
+    err = assemblePacket(packet, address, command);
     if (err != ESP_OK) return err;
 
     ESP_LOGI("IREncoder", "Packet creation complete with %zu items", packet->size());
     return ESP_OK;
 }
 
-esp_err_t IREncoder::validatePacketInput(std::unique_ptr<std::vector<rmt_item32_t>>& packet, uint32_t address, uint32_t command) const {
+esp_err_t IREncoder::validatePacketInput(uint32_t address, uint32_t command) const {
     // Check if the address fits within the allowed bit length for the selected protocol
     uint32_t addressBits = protocolSettings_->getAddressBits();
     if (getBitLength(address) > addressBits) {
@@ -177,19 +177,9 @@ esp_err_t IREncoder::validatePacketInput(std::unique_ptr<std::vector<rmt_item32_
     return ESP_OK;
 }
 
-esp_err_t IREncoder::initializePacket(std::unique_ptr<std::vector<rmt_item32_t>>& packet) const {
-    // Ensure the packet is allocated
-    if (!packet) {
-        packet = std::make_unique<std::vector<rmt_item32_t>>();
-        if (!packet) {
-            ESP_LOGE("IREncoder", "Failed to allocate memory for packet");
-            return ESP_ERR_NO_MEM;
-        }
-        ESP_LOGI("IREncoder", "Allocated new packet vector");
-    }
-
+esp_err_t IREncoder::initializePacket(std::vector<rmt_item32_t>& packet) const {
     // Clear the packet
-    packet->clear();
+    packet.clear();
     ESP_LOGI("IREncoder", "Cleared packet contents");
 
     return ESP_OK;

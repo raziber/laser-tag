@@ -22,10 +22,10 @@ IRTransmitter::~IRTransmitter() {
 }
 
 esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) const {
-    std::unique_ptr<std::vector<rmt_item32_t>> packet;
+    std::vector<rmt_item32_t> packet;
     esp_err_t err = encoder_->createPacket(packet, address, command);
     
-    if (err != ESP_OK || !packet || packet->empty()) {
+    if (err != ESP_OK || packet.empty()) {
         ESP_LOGE("IRTransmitter", "Failed to create packet for transmission: %s", esp_err_to_name(err));
         return ESP_ERR_NO_MEM;  // or another appropriate error code depending on the issue
     }
@@ -39,7 +39,7 @@ esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) 
         
         do {
             // Write items to the RMT channel
-            err = rmt_write_items(static_cast<rmt_channel_t>(i), packet->data(), packet->size(), true);
+            err = rmt_write_items(static_cast<rmt_channel_t>(i), packet.data(), packet.size(), true);
             
             if (err == ESP_OK) {
                 // Wait for the transmission to finish
@@ -71,10 +71,10 @@ esp_err_t IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command
     }
 
     // Create the packet
-    std::unique_ptr<std::vector<rmt_item32_t>> packet;
+    std::vector<rmt_item32_t> packet;
     esp_err_t err = encoder_->createPacket(packet, address, command);
 
-    if (err != ESP_OK || !packet || packet->empty()) {
+    if (err != ESP_OK || packet.empty()) {
         ESP_LOGE("IRTransmitter", "Failed to create packet for transmission on port %d: %s", portIndex, esp_err_to_name(err));
         return ESP_ERR_NO_MEM;  // or the appropriate error returned from createPacket
     }
@@ -85,7 +85,7 @@ esp_err_t IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command
     // Attempt to transmit with retries
     int retries = MAX_RETRIES;
     do {
-        err = rmt_write_items(static_cast<rmt_channel_t>(portIndex), packet->data(), packet->size(), true);
+        err = rmt_write_items(static_cast<rmt_channel_t>(portIndex), packet.data(), packet.size(), true);
         if (err == ESP_OK) {
             // Wait for the transmission to complete with the timeout
             err = rmt_wait_tx_done(static_cast<rmt_channel_t>(portIndex), pdMS_TO_TICKS(TIMEOUT_MS));
