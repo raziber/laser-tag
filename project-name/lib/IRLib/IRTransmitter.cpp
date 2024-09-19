@@ -21,14 +21,20 @@ IRTransmitter::~IRTransmitter() {
     }
 }
 
-esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) const {
-    std::vector<rmt_item32_t> packet;
+esp_err_t IRTransmitter::createPacket(std::vector<rmt_item32_t>& packet, uint32_t address, uint32_t command) const {
     esp_err_t err = encoder_->createPacket(packet, address, command);
     
     if (err != ESP_OK || packet.empty()) {
         ESP_LOGE("IRTransmitter", "Failed to create packet for transmission: %s", esp_err_to_name(err));
-        return ESP_ERR_NO_MEM;  // or another appropriate error code depending on the issue
+        return ESP_ERR_NO_MEM;
     }
+
+    return err;
+}
+
+esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) const {
+    std::vector<rmt_item32_t> packet;
+    esp_err_t err = IRTransmitter::createPacket(packet, address, command);
 
     static constexpr int MAX_RETRIES = 3;
     static constexpr int TIMEOUT_MS = 200;
@@ -62,48 +68,44 @@ esp_err_t IRTransmitter::transmitToAllPorts(uint32_t address, uint32_t command) 
     return final_result;  // Return the final result
 }
 
-
-esp_err_t IRTransmitter::transmitToSinglePort(uint32_t address, uint32_t command, uint32_t portIndex) const {
-    // Validate the port index
+esp_err_t IRTransmitter::validatePortIndex(uint32_t portIndex) const {
     if (portIndex >= gpioPorts_.size()) {
         ESP_LOGE("IRTransmitter", "Invalid port index: %d", portIndex);
         return ESP_ERR_INVALID_ARG;
     }
 
-    // Create the packet
+    return ESP_OK;
+}
+
+esp_err_t IRTransmitter::transmitToSinglePort(uint32_t portIndex, uint32_t address, uint32_t command) const {
+    esp_err_t err = IRTransmitter::validatePortIndex(portIndex);
+    if (err != ESP_OK) return err;
+
     std::vector<rmt_item32_t> packet;
-    esp_err_t err = encoder_->createPacket(packet, address, command);
-
-    if (err != ESP_OK || packet.empty()) {
-        ESP_LOGE("IRTransmitter", "Failed to create packet for transmission on port %d: %s", portIndex, esp_err_to_name(err));
-        return ESP_ERR_NO_MEM;  // or the appropriate error returned from createPacket
-    }
-
-    static constexpr int MAX_RETRIES = 3;  // Maximum retries for transmission
-    static constexpr int TIMEOUT_MS = 200; // Transmission timeout (in milliseconds)
+    err = IRTransmitter::createPacket(packet, address, command);
+    if (err != ESP_OK) return err;
     
-    // Attempt to transmit with retries
-    int retries = MAX_RETRIES;
-    do {
+    err = IRTransmitter::transmitToPort(portIndex, packet);
+    return err;
+}
+
+esp_err_t IRTransmitter::transmitToPort(uint32_t portIndex, std::vector<rmt_item32_t>& packet) const {
+    static constexpr int MAX_RETRIES = 3;
+    static constexpr int TIMEOUT_MS = 200;
+    esp_err_t err = ESP_OK;
+
+    for (int retries = MAX_RETRIES; retries > 0; --retries) {
         err = rmt_write_items(static_cast<rmt_channel_t>(portIndex), packet.data(), packet.size(), true);
         if (err == ESP_OK) {
-            // Wait for the transmission to complete with the timeout
             err = rmt_wait_tx_done(static_cast<rmt_channel_t>(portIndex), pdMS_TO_TICKS(TIMEOUT_MS));
             if (err == ESP_OK) {
-                ESP_LOGI("IRTransmitter", "Successfully transmitted on port %d", portIndex);
-                break;  // Success, exit retry loop
-            } else {
-                ESP_LOGW("IRTransmitter", "Transmission timeout on port %d, retrying... (%d retries left)", portIndex, retries);
+                return ESP_OK;  // Transmission successful
             }
-        } else {
-            ESP_LOGW("IRTransmitter", "Failed to write items to port %d, retrying... (%d retries left)", portIndex, retries);
         }
-    } while (retries-- > 0);
-
-    if (err != ESP_OK) {
-        ESP_LOGE("IRTransmitter", "Failed to transmit on port %d after retries: %s", portIndex, esp_err_to_name(err));
+        ESP_LOGW("IRTransmitter", "Transmission failed on channel %d, retrying... (%d retries left)", portIndex, retries - 1);
     }
 
+    ESP_LOGE("IRTransmitter", "Failed to transmit on channel %d after retries: %s", portIndex, esp_err_to_name(err));
     return err;
 }
 

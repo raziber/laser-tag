@@ -12,13 +12,17 @@ public:
     ~IRTransmitter();
 
     esp_err_t transmitToAllPorts(uint32_t address, uint32_t command) const;
-    esp_err_t transmitToSinglePort(uint32_t address, uint32_t command, uint32_t portId) const;
+    esp_err_t transmitToSinglePort(uint32_t portIndex, uint32_t address, uint32_t command) const;
 private:
     std::unique_ptr<IREncoder> encoder_;
     std::unique_ptr<IRProtocolSettings> protocolSettings_;
-    std::vector<int> gpioPorts_;  // A list of ports (RMT channels or GPIO pins)
+    std::vector<int> gpioPorts_;
     int memBlockNum_;
     int clkDiv_;
+
+    esp_err_t createPacket(std::vector<rmt_item32_t>& packet, uint32_t address, uint32_t command) const;
+    esp_err_t transmitToPort(size_t portIndex, std::vector<rmt_item32_t>& packet) const;
+    esp_err_t validatePortIndex(uint32_t portIndex) const;
 
     esp_err_t configurePort(int port, int memBlockNum, int clkDiv);
     esp_err_t uninstallRmtDriver(rmt_channel_t channel);
