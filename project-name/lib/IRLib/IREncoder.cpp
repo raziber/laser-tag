@@ -4,19 +4,12 @@ IREncoder::IREncoder(IRProtocol protocol){
     // Use the factory to load the correct protocol settings
     protocolSettings_ = IRProtocolFactory::createProtocolSettings(protocol);
 
-    // TODO: add error management
+    if (!protocolSettings_) {
+        ESP_LOGE("IREncoder", "Failed to create protocol settings.");
+    }
 }
 
 IREncoder::~IREncoder(){}
-
-uint32_t IREncoder::getBitLength(uint32_t value) const {
-    uint32_t bitLength = 0;
-    while (value) {
-        value >>= 1;  // Shift right by one bit
-        bitLength++;
-    }
-    return bitLength > 0 ? bitLength : 1;  // Ensure we return at least 1 for 0
-}
 
 rmt_item32_t IREncoder::createPulseItem(uint32_t duration0, uint32_t duration1) const {
     rmt_item32_t item;
@@ -31,11 +24,6 @@ rmt_item32_t IREncoder::createPulseItem(uint32_t duration0, uint32_t duration1) 
 }
 
 esp_err_t IREncoder::appendPulseToPacket(std::vector<rmt_item32_t>& packet, bool isOne) const {
-    if (!protocolSettings_) {
-        ESP_LOGE("IREncoder", "Protocol settings are not initialized.");
-        return ESP_FAIL;
-    }
-
     rmt_item32_t pulseItem;
 
     // Determine pulse durations based on the bit value (1 or 0)
@@ -51,91 +39,62 @@ esp_err_t IREncoder::appendPulseToPacket(std::vector<rmt_item32_t>& packet, bool
         );
     }
 
-    // Append the pulse to the packet and check if push_back succeeded (for error handling)
-    try {
-        packet.push_back(pulseItem);
-    } catch (const std::bad_alloc& e) {
-        ESP_LOGE("IREncoder", "Failed to allocate memory for packet: %s", e.what());
-        return ESP_ERR_NO_MEM;
-    }
-
+    packet.push_back(pulseItem);
     return ESP_OK;
 }
 
 esp_err_t IREncoder::appendHeaderToPacket(std::vector<rmt_item32_t>& packet) const {
-    if (!protocolSettings_) {
-        ESP_LOGE("IREncoder", "Protocol settings are not initialized.");
-        return ESP_FAIL;
-    }
-
     rmt_item32_t headerPulse = createPulseItem(
         protocolSettings_->getLeadingCodeDuration0(),
         protocolSettings_->getLeadingCodeDuration1()
     );
-
-    try {
-        packet.push_back(headerPulse);
-    } catch (const std::bad_alloc& e) {
-        ESP_LOGE("IREncoder", "Failed to allocate memory for packet: %s", e.what());
-        return ESP_ERR_NO_MEM;
-    }
-
+    
+    packet.push_back(headerPulse);
     return ESP_OK;
 }
 
 esp_err_t IREncoder::appendStopToPacket(std::vector<rmt_item32_t>& packet) const {
-    if (!protocolSettings_) {
-        ESP_LOGE("IREncoder", "Protocol settings are not initialized.");
-        return ESP_FAIL;
-    }
-
     if (protocolSettings_->getHasStopBit()) {
         rmt_item32_t stopPulse = createPulseItem(
             protocolSettings_->getStopBitDuration0(),
             protocolSettings_->getStopBitDuration1()
         );
 
-        try {
-            packet.push_back(stopPulse);
-        } catch (const std::bad_alloc& e) {
-            ESP_LOGE("IREncoder", "Failed to allocate memory for stop pulse: %s", e.what());
-            return ESP_ERR_NO_MEM;
+        packet.push_back(stopPulse);
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t IREncoder::appendDataToPacket(std::vector<rmt_item32_t>& packet, uint32_t data, uint32_t bitLength) const {
+    bool isLsbFirst = protocolSettings_->isLsbFirst();
+
+    for (uint32_t i = 0; i < bitLength; i++) {
+        bool bit;
+        if (isLsbFirst) {
+            bit = (data >> i) & 0x01;
+        } else {
+            bit = (data >> (bitLength - 1 - i)) & 0x01;
+        }
+
+        esp_err_t err = appendPulseToPacket(packet, bit);
+        if (err != ESP_OK) {
+            ESP_LOGE("IREncoder", "Failed to append pulse to packet at bit %d", i);
+            return err;
         }
     }
 
     return ESP_OK;
 }
 
-esp_err_t IREncoder::appendDataToPacket(std::vector<rmt_item32_t>& packet, uint32_t data) const {
-    bool isLsbFirst = protocolSettings_->isLsbFirst();  // Check if the protocol sends LSB first
-    uint32_t length = getBitLength(data);
-    
-    for (uint32_t i = 0; i < length; i++) {
-        bool bit;
-        
-        // Determine bit based on protocol setting (LSB first or MSB first)
-        if (isLsbFirst) {
-            bit = data & (1 << i);
-        } else {
-            bit = data & (1 << (length - 1 - i));
-        }
+esp_err_t IREncoder::appendInvertedDataToPacket(std::vector<rmt_item32_t>& packet, uint32_t data, uint32_t bitLength) const {
+    uint32_t mask = (1 << bitLength) - 1;
+    uint32_t invertedData = (~data) & mask;
 
-        // Append pulse for the bit
-        esp_err_t err = appendPulseToPacket(packet, bit);
-        if (err != ESP_OK) {
-            ESP_LOGE("IREncoder", "Failed to append pulse to packet at bit %d", i);
-            return err;  // Propagate the error upwards
-        }
-    }
-
-    return ESP_OK;  // Return success if all pulses were appended successfully
-}
-
-esp_err_t IREncoder::appendInvertedDataToPacket(std::vector<rmt_item32_t>& packet, uint32_t data) const {
-    esp_err_t err = appendDataToPacket(packet, ~data);
+    esp_err_t err = appendDataToPacket(packet, invertedData, bitLength);
     if (err != ESP_OK) {
         ESP_LOGE("IREncoder", "Failed to append inverted data to packet");
-        return err;  // Propagate the error upwards
+        return err;
     }
     return ESP_OK;
 }
@@ -155,22 +114,23 @@ esp_err_t IREncoder::createPacket(std::vector<rmt_item32_t>& packet, uint32_t ad
     err = assemblePacket(packet, address, command);
     if (err != ESP_OK) return err;
 
-    ESP_LOGI("IREncoder", "Packet creation complete with %zu items", packet->size());
+    ESP_LOGI("IREncoder", "Packet creation complete with %zu items", packet.size());
     return ESP_OK;
 }
 
 esp_err_t IREncoder::validatePacketInput(uint32_t address, uint32_t command) const {
-    // Check if the address fits within the allowed bit length for the selected protocol
     uint32_t addressBits = protocolSettings_->getAddressBits();
-    if (getBitLength(address) > addressBits) {
-        ESP_LOGE("IREncoder", "Address 0x%x exceeds the allowed bit length of %u bits", address, addressBits);
+    uint32_t commandBits = protocolSettings_->getCommandBits();
+
+    uint32_t maxAddressValue = (1 << addressBits) - 1;
+    if (address > maxAddressValue) {
+        ESP_LOGE("IREncoder", "Address 0x%x exceeds the maximum allowed value 0x%x for %u bits", address, maxAddressValue, addressBits);
         return ESP_ERR_INVALID_ARG;
     }
 
-    // Check if the command fits within the allowed bit length for the selected protocol
-    uint32_t commandBits = protocolSettings_->getCommandBits();
-    if (getBitLength(command) > commandBits) {
-        ESP_LOGE("IREncoder", "Command 0x%x exceeds the allowed bit length of %u bits", command, commandBits);
+    uint32_t maxCommandValue = (1 << commandBits) - 1;
+    if (command > maxCommandValue) {
+        ESP_LOGE("IREncoder", "Command 0x%x exceeds the maximum allowed value 0x%x for %u bits", command, maxCommandValue, commandBits);
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -178,7 +138,14 @@ esp_err_t IREncoder::validatePacketInput(uint32_t address, uint32_t command) con
 }
 
 esp_err_t IREncoder::initializePacket(std::vector<rmt_item32_t>& packet) const {
-    // Clear the packet
+    packet.clear();
+    size_t maxPacketSize = protocolSettings_->getMaxPacketSize();
+    packet.reserve(maxPacketSize);
+    ESP_LOGD("IREncoder", "Cleared packet contents and reserved capacity for %zu items", maxPacketSize);
+    return ESP_OK;
+}
+
+esp_err_t IREncoder::initializePacket(std::vector<rmt_item32_t>& packet) const {
     packet.clear();
     ESP_LOGI("IREncoder", "Cleared packet contents");
 
@@ -194,26 +161,24 @@ esp_err_t IREncoder::assemblePacket(std::vector<rmt_item32_t>& packet, uint32_t 
     }
 
     // Append address
-    err = appendDataToPacket(packet, address);
-    if (err != ESP_OK) {
-        ESP_LOGE("IREncoder", "Failed to append address 0x%x to packet", address);
-        return err;
-    }
+    err = appendDataToPacket(packet, address, protocolSettings_->getAddressBits());
+    if (err != ESP_OK) return err;
 
     // Append inverted address if needed
-    err = addInvertedDataIfNeeded(packet, address, protocolSettings_->getHasInvertedAddress());
-    if (err != ESP_OK) return err;
-
-    // Append command
-    err = appendDataToPacket(packet, command);
-    if (err != ESP_OK) {
-        ESP_LOGE("IREncoder", "Failed to append command 0x%x to packet", command);
-        return err;
+    if (protocolSettings_->getHasInvertedAddress()) {
+        err = appendInvertedDataToPacket(packet, address, protocolSettings_->getAddressBits());
+        if (err != ESP_OK) return err;
     }
 
-    // Append inverted command if needed
-    err = addInvertedDataIfNeeded(packet, command, protocolSettings_->getHasInvertedCommand());
+    // Append command
+    err = appendDataToPacket(packet, command, protocolSettings_->getCommandBits());
     if (err != ESP_OK) return err;
+
+    // Append inverted command if needed
+    if (protocolSettings_->getHasInvertedCommand()) {
+        err = appendInvertedDataToPacket(packet, command, protocolSettings_->getCommandBits());
+        if (err != ESP_OK) return err;
+    }
 
     // Append stop bit
     err = appendStopToPacket(packet);
@@ -222,17 +187,5 @@ esp_err_t IREncoder::assemblePacket(std::vector<rmt_item32_t>& packet, uint32_t 
         return err;
     }
 
-    return ESP_OK;
-}
-
-esp_err_t IREncoder::addInvertedDataIfNeeded(std::vector<rmt_item32_t>& packet, uint32_t data, bool needsInversion) const {
-    if (needsInversion) {
-        esp_err_t err = appendInvertedDataToPacket(packet, data);
-        if (err != ESP_OK) {
-            ESP_LOGE("IREncoder", "Failed to append inverted data 0x%x to packet", ~data);
-            return err;
-        }
-        ESP_LOGI("IREncoder", "Appended inverted data 0x%x to packet", ~data);
-    }
     return ESP_OK;
 }
