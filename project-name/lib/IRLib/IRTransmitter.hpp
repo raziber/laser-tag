@@ -30,4 +30,8 @@ private:
 
     esp_err_t configurePort(int port, int memBlockNum, int clkDiv);
     esp_err_t uninstallRmtDriver(rmt_channel_t channel);
+
+    // Prevent copying
+    IRTransmitter(const IRTransmitter&) = delete;
+    IRTransmitter& operator=(const IRTransmitter&) = delete;
 };

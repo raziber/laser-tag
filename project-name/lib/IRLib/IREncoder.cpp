@@ -17,6 +17,7 @@ IREncoder::IREncoder(IRProtocol protocol){
 IREncoder::~IREncoder(){
     if (encoderMutex_ != nullptr) {
         vSemaphoreDelete(encoderMutex_);
+        encoderMutex_ = nullptr;
     }
 }
 
@@ -110,6 +111,16 @@ esp_err_t IREncoder::appendInvertedDataToPacket(std::vector<rmt_item32_t>& packe
 
 esp_err_t IREncoder::createPacket(std::vector<rmt_item32_t>& packet, uint32_t address, uint32_t command) {
     ESP_LOGI("IREncoder", "Creating packet for address: 0x%x, command: 0x%x", address, command);
+
+    if (protocolSettings_ == nullptr) {
+        ESP_LOGE("IREncoder", "Protocol settings not initialized.");
+        return ESP_ERR_INVALID_STATE;
+    }
+
+    if (encoderMutex_ == nullptr) {
+        ESP_LOGE("IREncoder", "Encoder mutex not initialized.");
+        return ESP_ERR_INVALID_STATE;
+    }
 
     if (xSemaphoreTake(encoderMutex_, portMAX_DELAY) != pdTRUE){
         ESP_LOGE("IREncoder", "Failed to take mutex");

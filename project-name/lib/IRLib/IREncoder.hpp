@@ -1,12 +1,12 @@
 #pragma once
 
-#include "IRProtocols/IRProtocolFactory.hpp"
 #include <driver/rmt.h>
 #include <Arduino.h>
 #include <vector>
 #include <memory>
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "IRProtocols/IRProtocolFactory.hpp"
 
 class IREncoder {
 public:
@@ -28,4 +28,8 @@ private:
     esp_err_t validatePacketInput(uint32_t address, uint32_t command) const;
     esp_err_t initializePacket(std::vector<rmt_item32_t>& packet) const;
     esp_err_t assemblePacket(std::vector<rmt_item32_t>& packet, uint32_t address, uint32_t command) const;
+
+    // Prevent copying
+    IREncoder(const IREncoder&) = delete;
+    IREncoder& operator=(const IREncoder&) = delete;
 };

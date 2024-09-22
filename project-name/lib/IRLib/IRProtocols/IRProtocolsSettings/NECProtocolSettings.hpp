@@ -20,6 +20,11 @@ public:
     uint32_t getRepeatFrameItemCount() const override { return 2; }
     uint32_t getAddressBits() const override { return 8; }
     uint32_t getCommandBits() const override { return 8; }
+
+    uint32_t getFilterTicksThreshold() const override { return 100; }
+    uint32_t getIdleThreshold() const override { return 1200; }
+    uint32_t getClockDivider() const override { return 80; }
+
     bool getHasInvertedAddress() const override { return true; }
     bool getHasInvertedCommand() const override { return true; }
     bool isLsbFirst() const override { return true; }

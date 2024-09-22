@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Arduino.h>
+
 class IRProtocolSettings{
 public:
     virtual ~IRProtocolSettings() = default;
@@ -23,6 +25,11 @@ public:
     virtual bool getHasInvertedAddress() const = 0;
     virtual bool getHasInvertedCommand() const = 0;
     virtual bool isLsbFirst() const = 0;
+
+    virtual uint32_t getFilterTicksThreshold() const = 0;
+    virtual uint32_t getIdleThreshold() const = 0;
+    virtual uint32_t getClockDivider() const = 0;
+
 
     uint32_t getAddressItemCount() const;
     uint32_t getCommandItemCount() const;
