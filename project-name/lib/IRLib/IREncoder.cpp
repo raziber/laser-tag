@@ -1,6 +1,11 @@
 #include "IREncoder.hpp"
 
 IREncoder::IREncoder(IRProtocol protocol){
+    encoderMutex_ = xSemaphoreCreateMutex();
+    if (encoderMutex_ == nullptr) {
+        ESP_LOGE("IREncoder", "Failed to create mutex");
+    }
+
     // Use the factory to load the correct protocol settings
     protocolSettings_ = IRProtocolFactory::createProtocolSettings(protocol);
 
@@ -9,7 +14,11 @@ IREncoder::IREncoder(IRProtocol protocol){
     }
 }
 
-IREncoder::~IREncoder(){}
+IREncoder::~IREncoder(){
+    if (encoderMutex_ != nullptr) {
+        vSemaphoreDelete(encoderMutex_);
+    }
+}
 
 rmt_item32_t IREncoder::createPulseItem(uint32_t duration0, uint32_t duration1) const {
     rmt_item32_t item;
@@ -102,18 +111,33 @@ esp_err_t IREncoder::appendInvertedDataToPacket(std::vector<rmt_item32_t>& packe
 esp_err_t IREncoder::createPacket(std::vector<rmt_item32_t>& packet, uint32_t address, uint32_t command) {
     ESP_LOGI("IREncoder", "Creating packet for address: 0x%x, command: 0x%x", address, command);
 
+    if (xSemaphoreTake(encoderMutex_, portMAX_DELAY) != pdTRUE){
+        ESP_LOGE("IREncoder", "Failed to take mutex");
+        return ESP_FAIL;
+    }
+
     // Validate the input
     esp_err_t err = validatePacketInput(address, command);
-    if (err != ESP_OK) return err;
+    if (err != ESP_OK) {
+        xSemaphoreGive(encoderMutex_);
+        return err;
+    }
 
     // Initialize the packet
     err = initializePacket(packet);
-    if (err != ESP_OK) return err;
+    if (err != ESP_OK) {
+        xSemaphoreGive(encoderMutex_);
+        return err;
+    }
 
     // Build the packet
     err = assemblePacket(packet, address, command);
-    if (err != ESP_OK) return err;
+    if (err != ESP_OK) {
+        xSemaphoreGive(encoderMutex_);
+        return err;
+    }
 
+    xSemaphoreGive(encoderMutex_);
     ESP_LOGI("IREncoder", "Packet creation complete with %zu items", packet.size());
     return ESP_OK;
 }
@@ -142,13 +166,6 @@ esp_err_t IREncoder::initializePacket(std::vector<rmt_item32_t>& packet) const {
     size_t maxPacketSize = protocolSettings_->getMaxPacketSize();
     packet.reserve(maxPacketSize);
     ESP_LOGD("IREncoder", "Cleared packet contents and reserved capacity for %zu items", maxPacketSize);
-    return ESP_OK;
-}
-
-esp_err_t IREncoder::initializePacket(std::vector<rmt_item32_t>& packet) const {
-    packet.clear();
-    ESP_LOGI("IREncoder", "Cleared packet contents");
-
     return ESP_OK;
 }
 
