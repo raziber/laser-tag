@@ -1,0 +1,94 @@
+Date : 2024-09-24 01:30:12
+Directory : c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name
+Total : 51 files,  1896 codes, 465 comments, 456 blanks, all 2817 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| C++      |         50 |      1,869 |        450 |        452 |      2,771 |
+| Ini      |          1 |         27 |         15 |          4 |         46 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                                         | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                                            |         51 |      1,896 |        465 |        456 |      2,817 |
+| . (Files)                                                                                                                                                    |          1 |         27 |         15 |          4 |         46 |
+| include                                                                                                                                                      |          3 |         19 |         15 |          7 |         41 |
+| lib                                                                                                                                                          |         20 |      1,042 |        369 |        248 |      1,659 |
+| lib\IRLib                                                                                                                                                    |         17 |        934 |        264 |        222 |      1,420 |
+| lib\IRLib (Files)                                                                                                                                            |          8 |        745 |        264 |        182 |      1,191 |
+| lib\IRLib\IRProtocols                                                                                                                                        |          9 |        189 |          0 |         40 |        229 |
+| lib\IRLib\IRProtocols (Files)                                                                                                                                |          5 |         81 |          0 |         20 |        101 |
+| lib\IRLib\IRProtocols\IRProtocolsSettings                                                                                                                    |          4 |        108 |          0 |         20 |        128 |
+| lib\LaserTagGunTest                                                                                                                                          |          3 |        108 |        105 |         26 |        239 |
+| src                                                                                                                                                          |         22 |        694 |         63 |        173 |        930 |
+| src (Files)                                                                                                                                                  |          1 |         23 |          4 |          9 |         36 |
+| src\Bluetooth                                                                                                                                                |          3 |        132 |          8 |         23 |        163 |
+| src\GameMechanics                                                                                                                                            |          5 |        113 |         22 |         30 |        165 |
+| src\GeneralFunctions                                                                                                                                         |          2 |         42 |          2 |         10 |         54 |
+| src\IR                                                                                                                                                       |         11 |        384 |         27 |        101 |        512 |
+| test                                                                                                                                                         |          5 |        114 |          3 |         24 |        141 |
+| test\test_embedded                                                                                                                                           |          2 |         30 |          0 |          8 |         38 |
+| test\test_native                                                                                                                                             |          3 |         84 |          3 |         16 |        103 |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                                                                     | language | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\include\IRConstants.h                                                 | C++      |          5 |          0 |          1 |          6 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\include\configuration.h                                               | C++      |          8 |         15 |          3 |         26 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\include\configurationBackend.h                                        | C++      |          6 |          0 |          3 |          9 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRDecoder.cpp                                               | C++      |         90 |          9 |         20 |        119 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRDecoder.hpp                                               | C++      |         16 |         58 |          8 |         82 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IREncoder.cpp                                               | C++      |        166 |         12 |         42 |        220 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IREncoder.hpp                                               | C++      |         28 |         54 |          8 |         90 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolEnum.hpp                              | C++      |          7 |          0 |          2 |          9 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolFactory.cpp                           | C++      |         21 |          0 |          4 |         25 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolFactory.hpp                           | C++      |          8 |          0 |          3 |         11 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolSettings.cpp                          | C++      |         13 |          0 |          5 |         18 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolSettings.hpp                          | C++      |         32 |          0 |          6 |         38 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolsSettings\CustomProtocolSettings.hpp  | C++      |         27 |          0 |          5 |         32 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolsSettings\LTTOProtocolSettings.hpp    | C++      |         27 |          0 |          5 |         32 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolsSettings\NECProtocolSettings.hpp     | C++      |         27 |          0 |          5 |         32 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRProtocols\IRProtocolsSettings\SamsungProtocolSettings.hpp | C++      |         27 |          0 |          5 |         32 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRReceiver.cpp                                              | C++      |        161 |          8 |         39 |        208 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRReceiver.hpp                                              | C++      |         38 |         66 |         12 |        116 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRTransmitter.cpp                                           | C++      |        207 |         11 |         41 |        259 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\IRLib\IRTransmitter.hpp                                           | C++      |         39 |         46 |         12 |         97 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\LaserTagGunTest\GunMain.cpp                                       | C++      |          0 |          0 |          1 |          1 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\LaserTagGunTest\LaserTagGun.cpp                                   | C++      |         78 |         13 |         16 |        107 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\lib\LaserTagGunTest\LaserTagGun.hpp                                   | C++      |         30 |         92 |          9 |        131 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\platformio.ini                                                        | Ini      |         27 |         15 |          4 |         46 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\Bluetooth\BT.cpp                                                  | C++      |        108 |          7 |         17 |        132 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\Bluetooth\BT.h                                                    | C++      |         15 |          0 |          4 |         19 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\Bluetooth\InputType.h                                             | C++      |          9 |          1 |          2 |         12 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GameMechanics\Game.cpp                                            | C++      |         53 |         14 |         13 |         80 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GameMechanics\Game.h                                              | C++      |         15 |          0 |          4 |         19 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GameMechanics\GameManager.cpp                                     | C++      |         31 |          7 |          8 |         46 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GameMechanics\GameManager.h                                       | C++      |          6 |          0 |          3 |          9 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GameMechanics\GameMode.h                                          | C++      |          8 |          1 |          2 |         11 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GeneralFunctions\utils.cpp                                        | C++      |         29 |          1 |          6 |         36 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\GeneralFunctions\utils.h                                          | C++      |         13 |          1 |          4 |         18 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\Decoder.cpp                                                    | C++      |         64 |          0 |         15 |         79 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\Decoder.h                                                      | C++      |         18 |          0 |          4 |         22 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\Encoder.cpp                                                    | C++      |         48 |          6 |         20 |         74 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\Encoder.h                                                      | C++      |         15 |          0 |          5 |         20 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\IProtocolSettings.cpp                                          | C++      |         13 |          0 |          5 |         18 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\IRReceiver.cpp                                                 | C++      |         82 |         14 |         18 |        114 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\IRReceiver.h                                                   | C++      |         19 |          0 |          6 |         25 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\IRTransmitter.cpp                                              | C++      |         52 |          6 |         11 |         69 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\IRTransmitter.h                                                | C++      |         17 |          0 |          5 |         22 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\irInitFunctions.cpp                                            | C++      |         40 |          0 |          8 |         48 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\IR\irInitFunctions.h                                              | C++      |         16 |          1 |          4 |         21 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\src\main.cpp                                                          | C++      |         23 |          4 |          9 |         36 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\test\test_embedded\test_embedded_setup.cpp                            | C++      |         15 |          0 |          5 |         20 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\test\test_embedded\test_example.cpp                                   | C++      |         15 |          0 |          3 |         18 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\test\test_native\test_decoder_helper_functions.cpp                    | C++      |         75 |          3 |         12 |         90 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\test\test_native\test_example.cpp                                     | C++      |          4 |          0 |          2 |          6 |
+| c:\Users\razib\Desktop\Projects\Old Computer Projects\Laser Tag\laser-tag\project-name\test\test_native\test_native_setup.cpp                                | C++      |          5 |          0 |          2 |          7 |
+| Total                                                                                                                                                        |          |      1,896 |        465 |        456 |      2,817 |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
