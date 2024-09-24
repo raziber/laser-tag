@@ -1,4 +1,7 @@
 #include "LaserTagGun.hpp"
+#include "MFRC522.hpp"
+
+using namespace MFRC522Constants;
 
 // Constructor
 LaserTagGun::LaserTagGun(gpio_num_t buttonGpioNum, IRProtocol protocol)
@@ -47,6 +50,10 @@ void LaserTagGun::initButton() {
     xTaskCreate(buttonTask, "ButtonTask", 2048, this, 5, &buttonTaskHandle_);
 }
 
+void LaserTagGun::initRFID(){
+    xTaskCreate(rfidTask, "RFID Task", 4096, NULL, 5, NULL);
+}
+
 // Static button task function
 void LaserTagGun::buttonTask(void* arg) {
     LaserTagGun* gun = static_cast<LaserTagGun*>(arg);
@@ -64,6 +71,61 @@ void LaserTagGun::buttonTask(void* arg) {
         } else {
             vTaskDelay(pdMS_TO_TICKS(10));   // Short delay
         }
+    }
+}
+
+// Static RFID task function
+void LaserTagGun::buttonTask(void* arg){
+    MFRC522 rfidReader;
+    esp_err_t ret = rfidReader.initialize();
+    if (ret != ESP_OK) {
+        ESP_LOGE("RFID Task", "Failed to initialize MFRC522: %s", esp_err_to_name(ret));
+        vTaskDelete(NULL);
+    }
+
+    while (true) {
+        bool cardPresent = false;
+        ret = rfidReader.isNewCardPresent(cardPresent);
+        if (ret != ESP_OK) {
+            ESP_LOGE("RFID Task", "Error checking for new card: %s", esp_err_to_name(ret));
+        } else if (cardPresent) {
+            std::array<uint8_t, MFRC522Constants::maxUidLength_> uid;
+            uint8_t uidSize = 0;
+            ret = rfidReader.readCardSerial(uid, uidSize);
+            if (ret == ESP_OK) {
+                ESP_LOGI("RFID Task", "Card UID:");
+                for (uint8_t i = 0; i < uidSize; i++) {
+                    printf("%02X ", uid[i]);
+                }
+                printf("\n");
+
+                // Authenticate with Key A
+                uint8_t keyA[MFRC522Constants::mifareKeySize_] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+                ret = rfidReader.authenticate(4, static_cast<uint8_t>(PICCCommand::AuthenticateKeyA), keyA);
+                if (ret == ESP_OK) {
+                    // Read data from block 4
+                    uint8_t buffer[18];
+                    uint8_t bufferSize = sizeof(buffer);
+                    ret = rfidReader.readBlock(4, buffer, &bufferSize);
+                    if (ret == ESP_OK) {
+                        ESP_LOGI("RFID Task", "Block 4 Data:");
+                        for (int i = 0; i < 16; i++) {
+                            printf("%02X ", buffer[i]);
+                        }
+                        printf("\n");
+                    } else {
+                        ESP_LOGE("RFID Task", "Failed to read block: %s", esp_err_to_name(ret));
+                    }
+                    rfidReader.stopCrypto();
+                } else {
+                    ESP_LOGE("RFID Task", "Authentication failed: %s", esp_err_to_name(ret));
+                }
+            } else {
+                ESP_LOGE("RFID Task", "Failed to read card serial: %s", esp_err_to_name(ret));
+            }
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500)); // Check every 500ms
     }
 }
 
