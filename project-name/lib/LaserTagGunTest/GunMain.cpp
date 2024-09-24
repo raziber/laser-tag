@@ -1,15 +1,37 @@
 #include <Arduino.h>
 #include "LaserTagGun.hpp"
-#include "LaserTagGunConstants.hpp"
+#include "LaserTagGunConfig.hpp"
+#include "SPIBusManager.hpp"
+#include "SPIConfig.hpp"
 
-using namespace LaserTagGunConstants;
+using namespace LaserTagGunConfig;
+using namespace SPIConfig;
 
-LaserTagGun laserTagGun(irLedPin, buttonPin, protocol);
+// Declare pointers to the objects globally
+std::unique_ptr<RFIDReader> rfidReader;
+std::unique_ptr<LaserTagGun> laserTagGun;
 
 void setup() {
     Serial.begin(115200);
 
-    if (laserTagGun.start() != ESP_OK) {
+    esp_err_t ret = SPIBusManager::initializeBus();
+    if (ret != ESP_OK) {
+        ESP_LOGE("Main", "Failed to initialize SPI bus");
+        // Handle error accordingly
+    }
+
+    // Create MFRC522 instance
+    auto mfrc522 = std::make_unique<MFRC522>(spiHost, ssPin, rstPin);
+
+    // Create RFIDReader instance
+    rfidReader = std::make_unique<RFIDReader>(std::move(mfrc522));
+
+    // Create LaserTagGun instance
+    laserTagGun = std::make_unique<LaserTagGun>(irLedPin, buttonPin, protocol, std::move(rfidReader));
+
+    // Start the LaserTagGun
+    ret = laserTagGun->start();
+    if (ret != ESP_OK) {
         ESP_LOGE("Main", "Failed to start LaserTagGun");
         // Handle error accordingly
     }

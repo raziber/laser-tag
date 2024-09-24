@@ -1,7 +1,8 @@
 #include "RFIDReader.hpp"
+#include <esp_log.h>
 
-RFIDReader::RFIDReader()
-    : lastTagId_(""), tagMutex_(nullptr) {
+RFIDReader::RFIDReader(std::unique_ptr<MFRC522> mfrc522)
+    : mfrc522_(std::move(mfrc522)), lastTagId_(""), tagMutex_(nullptr) {
     tagMutex_ = xSemaphoreCreateMutex();
     if (tagMutex_ == nullptr) {
         ESP_LOGE("RFIDReader", "Failed to create tag mutex");
@@ -22,7 +23,7 @@ esp_err_t RFIDReader::initialize() {
         return ret;
     }
 
-    ret = mfrc522_.initialize();
+    ret = mfrc522_->initialize();
     if (ret != ESP_OK) {
         ESP_LOGE("RFIDReader", "Failed to initialize MFRC522");
         return ret;
@@ -33,7 +34,7 @@ esp_err_t RFIDReader::initialize() {
 
 esp_err_t RFIDReader::initHardware() {
     // Initialize RST pin
-    gpio_num_t rstPin = MFRC522Constants::defaultRstPin_;
+    gpio_num_t rstPin = mfrc522_->getRstPin();
     esp_err_t ret = gpio_set_direction(rstPin, GPIO_MODE_OUTPUT);
     if (ret != ESP_OK) {
         ESP_LOGE("RFIDReader", "Failed to set RST pin direction");
@@ -48,15 +49,16 @@ esp_err_t RFIDReader::initHardware() {
 }
 
 void RFIDReader::scan() {
+    // Existing scan logic
     bool cardPresent = false;
-    esp_err_t ret = mfrc522_.isNewCardPresent(cardPresent);
+    esp_err_t ret = mfrc522_->isNewCardPresent(cardPresent);
     if (ret != ESP_OK || !cardPresent) {
         return;
     }
 
     std::array<uint8_t, MFRC522Constants::maxUidLength_> uid;
     uint8_t uidSize = 0;
-    ret = mfrc522_.readCardSerial(uid, uidSize);
+    ret = mfrc522_->readCardSerial(uid, uidSize);
     if (ret != ESP_OK) {
         ESP_LOGE("RFIDReader", "Failed to read card serial");
         return;

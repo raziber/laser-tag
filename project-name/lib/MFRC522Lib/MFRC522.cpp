@@ -24,6 +24,7 @@ MFRC522::MFRC522(spi_host_device_t spiHost,
 MFRC522::~MFRC522() {
     if (spiMutex_ != nullptr) {
         vSemaphoreDelete(spiMutex_);
+        spiMutex_ = nullptr;
     }
     if (spiHandle_ != nullptr) {
         spi_bus_remove_device(spiHandle_);
@@ -571,4 +572,13 @@ esp_err_t MFRC522::selectCard() {
     }
 
     return ESP_OK;
+}
+
+gpio_num_t MFRC522::getRstPin(){
+    if (xSemaphoreTake(spiMutex_, portMAX_DELAY) != pdTRUE) {
+        ESP_LOGE("MFRC522", "Failed to take SPI mutex for reading");
+        return ESP_ERR_INVALID_STATE;
+    }
+    xSemaphoreGive(spiMutex_);
+    return rstPin_;
 }

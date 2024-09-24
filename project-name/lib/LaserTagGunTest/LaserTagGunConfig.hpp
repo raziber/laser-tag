@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "IRProtocolEnum.hpp"
 
-namespace LaserTagGunConstants {
+namespace LaserTagGunConfig {
     constexpr gpio_num_t irLedPin = GPIO_NUM_4;
     constexpr gpio_num_t buttonPin = GPIO_NUM_5;
     constexpr gpio_num_t ledPin = GPIO_NUM_2;

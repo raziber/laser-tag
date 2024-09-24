@@ -1,11 +1,14 @@
 #include "LaserTagGun.hpp"
 
 // Constructor
-LaserTagGun::LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol)
+LaserTagGun::LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, std::unique_ptr<RFIDReader> rfidReader)
     : irLedPin_(irLedPin), buttonPin_(buttonPin), protocol_(protocol),
-      irTransmitter_(irLedPin_, protocol_), buttonHandler_(buttonPin_) {
-    // Do not create mutex here
+      irTransmitter_(irLedPin_, protocol_), buttonHandler_(buttonPin_),
+      rfidReader_(std::move(rfidReader)) // Move the RFIDReader unique_ptr
+{
+    // Constructor body (if needed)
 }
+
 
 // Destructor
 LaserTagGun::~LaserTagGun() {
@@ -34,7 +37,12 @@ esp_err_t LaserTagGun::start() {
     }
 
     // Initialize RFIDReader
-    ret = rfidReader_.initialize();
+    if (!rfidReader_) {
+        ESP_LOGE("LaserTagGun", "rfidReader_ is null");
+        return ESP_FAIL;
+    }
+
+    ret = rfidReader_->initialize();
     if (ret != ESP_OK) {
         ESP_LOGE("LaserTagGun", "Failed to initialize RFIDReader");
         return ret;
@@ -51,8 +59,8 @@ esp_err_t LaserTagGun::start() {
 void LaserTagGun::rfidTask(void* arg) {
     LaserTagGun* gun = static_cast<LaserTagGun*>(arg);
     while (true) {
-        gun->rfidReader_.scan();
-        std::string tagId = gun->rfidReader_.getLastTagId();
+        gun->rfidReader_->scan();
+        std::string tagId = gun->rfidReader_->getLastTagId();
         if (!tagId.empty()) {
             gun->handleRFIDEvent(tagId);
         }

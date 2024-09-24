@@ -8,7 +8,7 @@
 
 class LaserTagGun {
 public:
-    LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol);
+    LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, gpio_num_t ledPin, gpio_num_t buzzerPin, RFIDReader&& rfidReader);
     ~LaserTagGun();
 
     esp_err_t start();
