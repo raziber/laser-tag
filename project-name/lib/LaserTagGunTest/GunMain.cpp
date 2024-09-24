@@ -1,22 +1,17 @@
-/**
- * @file    GunMain.cpp
- * @brief   Simple, single transmitter gun sketch.
- */
-
+#include <Arduino.h>
 #include "LaserTagGun.hpp"
+#include "LaserTagGunConstants.hpp"
 
-gpio_num_t IR_LED_GRPIO_PORT = GPIO_NUM_4;
-IRProtocol IR_COMMUNICATION_PROTOCOL = IRProtocol::NEC;
-LaserTagGun gun(IR_LED_GRPIO_PORT, IR_COMMUNICATION_PROTOCOL);
+using namespace LaserTagGunConstants;
+
+LaserTagGun laserTagGun(irLedPin, buttonPin, protocol);
 
 void setup() {
-    static constexpr int SERIAL_BAUDRATE = 115200;
-    Serial.begin(SERIAL_BAUDRATE);
-    delay(1000);  // Wait for Serial to initialize
+    Serial.begin(115200);
 
-    esp_err_t err = gun.start();
-    if (err != ESP_OK) {
-        ESP_LOGE("GunMain", "Failed to start LaserTagGun: %s", esp_err_to_name(err));
+    if (laserTagGun.start() != ESP_OK) {
+        ESP_LOGE("Main", "Failed to start LaserTagGun");
+        // Handle error accordingly
     }
 }
 
