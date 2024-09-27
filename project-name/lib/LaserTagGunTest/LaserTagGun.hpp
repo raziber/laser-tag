@@ -5,10 +5,11 @@
 #include "SimpleIRTransmitter.hpp"
 #include "ButtonHandler.hpp"
 #include "Player.hpp"
+#include "SPIBus.hpp"
 
 class LaserTagGun {
 public:
-    LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, gpio_num_t ledPin, gpio_num_t buzzerPin, RFIDReader&& rfidReader);
+    LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, std::unique_ptr<RFIDReader> rfidReader);
     ~LaserTagGun();
 
     esp_err_t start();
@@ -30,7 +31,7 @@ private:
     void fire();
 
     // Components
-    RFIDReader rfidReader_;
+    std::unique_ptr<RFIDReader> rfidReader_;
     SimpleIRTransmitter irTransmitter_;
     ButtonHandler buttonHandler_;
     Player currentPlayer_;

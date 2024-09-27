@@ -1,4 +1,6 @@
 #include "LaserTagGun.hpp"
+#include"SPIConfig.hpp"
+#include "ErrorStates.hpp"
 
 // Constructor
 LaserTagGun::LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, std::unique_ptr<RFIDReader> rfidReader)
@@ -6,9 +8,14 @@ LaserTagGun::LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol p
       irTransmitter_(irLedPin_, protocol_), buttonHandler_(buttonPin_),
       rfidReader_(std::move(rfidReader)) // Move the RFIDReader unique_ptr
 {
-    // Constructor body (if needed)
-}
+    auto spiBus = SPIBus::makeSPIBus(SPIConfig::spiHost);
+    if (!spiBus.has_value()) {
+        ErrorStates::critical_state();
+    }
 
+    spiBus = MAKE(SPIBus);
+    rfid = MAKE(SPIDevice<RFID>);
+}
 
 // Destructor
 LaserTagGun::~LaserTagGun() {
@@ -26,7 +33,7 @@ esp_err_t LaserTagGun::start() {
     playerMutex_ = xSemaphoreCreateMutex();
     if (playerMutex_ == nullptr) {
         ESP_LOGE("LaserTagGun", "Failed to create player mutex");
-        return ESP_FAIL; // Return an error code
+        // crirital_state();
     }
 
     // Initialize ButtonHandler
