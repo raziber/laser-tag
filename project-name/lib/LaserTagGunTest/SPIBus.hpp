@@ -6,11 +6,11 @@
 class SPIBus{
 public:
     static std::optional<SPIBus> make(spi_host_device_t hostID);
+    ~SPIBus();
 
-    bool addDeviceToBus(SPIDevice device);
+    std::optional<SPIDevice> addDeviceToBus(int csPin, int spiClockSpeedHz);
 private:
     SPIBus(spi_host_device_t hostID);
-    ~SPIBus();
 
     static spi_bus_config_t buildBusConfig();
 

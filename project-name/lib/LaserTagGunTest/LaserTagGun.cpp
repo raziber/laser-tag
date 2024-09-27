@@ -1,6 +1,13 @@
 #include "LaserTagGun.hpp"
 #include"SPIConfig.hpp"
 #include "ErrorStates.hpp"
+#include "Macros.hpp"
+
+std::optional<LaserTagGun> LaserTagGun::make(){
+    SPIBus spiBus = MAKE_WITH_ARGS(SPIBus, SPIConfig::spiHost);
+
+    return std::make_optional<LaserTagGun>(/*args*/);
+}
 
 // Constructor
 LaserTagGun::LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, std::unique_ptr<RFIDReader> rfidReader)
@@ -8,13 +15,10 @@ LaserTagGun::LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol p
       irTransmitter_(irLedPin_, protocol_), buttonHandler_(buttonPin_),
       rfidReader_(std::move(rfidReader)) // Move the RFIDReader unique_ptr
 {
-    auto spiBus = SPIBus::makeSPIBus(SPIConfig::spiHost);
-    if (!spiBus.has_value()) {
-        ErrorStates::critical_state();
-    }
+    SPIBus spiBus_ = MAKE_WITH_ARGS(SPIBus, SPIConfig::spiHost);
+    SPIDevice rfid_ = MAKE_WITH_ARGS(SPIDevice, spiBus_);
 
-    spiBus = MAKE(SPIBus);
-    rfid = MAKE(SPIDevice<RFID>);
+    spiBus_.addDeviceToBus(RFIDConfig, rfid_);
 }
 
 // Destructor

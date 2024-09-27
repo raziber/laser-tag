@@ -1,6 +1,6 @@
 #define MAKE(Type)                                      \
     [&]() -> decltype(auto) {                           \
-        auto instance = Type::make##Type();             \
+        auto instance = Type::make();                   \
         if (!instance) {                                \
             ErrorStates::critical_state();              \
         }                                               \
@@ -10,7 +10,7 @@
 
 #define MAKE_WITH_ARGS(Type, ...)                       \
     [&](auto&&... args) -> decltype(auto) {             \
-        auto instance = Type::make##Type(               \
+        auto instance = Type::make(                     \
             std::forward<decltype(args)>(args)...       \
         );                                              \
         if (!instance) {                                \
@@ -20,7 +20,7 @@
     }(__VA_ARGS__)
 
 
-#define TRY(func, tag, msg, ...)                                    \
+#define TRY_OPTIONAL(func, tag, msg, ...)                           \
     do {                                                            \
         esp_err_t ret = func(__VA_ARGS__);                          \
         if (ret != ESP_OK) {                                        \

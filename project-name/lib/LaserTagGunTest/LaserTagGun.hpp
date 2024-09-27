@@ -6,9 +6,12 @@
 #include "ButtonHandler.hpp"
 #include "Player.hpp"
 #include "SPIBus.hpp"
+#include "SPIDevice.hpp"
 
 class LaserTagGun {
 public:
+    std::optional<LaserTagGun> make();
+
     LaserTagGun(gpio_num_t irLedPin, gpio_num_t buttonPin, IRProtocol protocol, std::unique_ptr<RFIDReader> rfidReader);
     ~LaserTagGun();
 
