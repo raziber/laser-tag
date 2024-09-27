@@ -6,11 +6,11 @@
 
 class SPIDevice{
 public:
-    SPIDevice() = default;
+    SPIDevice(spi_device_handle_t deviceHandle);
     ~SPIDevice() = default;
 
-    static std::optional<SPIDevice> makeSPIDevice(SPIBus& bus);
-    spi_device_interface_config_t buildDeviceConfig();
+    static spi_device_interface_config_t buildDeviceConfig(int csPin, int spiClockSpeedHz);
 private:
-    spi_device_handle_t SPIDeviceHandle_;
+    spi_device_handle_t deviceHandle_;
+    spi_device_interface_config_t deviceConfig_;
 };

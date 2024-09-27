@@ -1,36 +1,28 @@
 #include "SPIBus.hpp"
 #include "SPIConfig.hpp"
 #include <esp_log.h>
+#include "Macros.hpp"
 
 SPIBus::SPIBus(spi_host_device_t hostID) : SPIHostHandle_(hostID){}
 
 SPIBus::~SPIBus(){
-    esp_err_t ret = spi_bus_free(SPIHostHandle_);
-    if (ret != ESP_OK) {
-        ESP_LOGE("SPIBus", "Failed to free SPI bus: %s", esp_err_to_name(ret));
-    }
+    // first remove all devices somehow
+    TRY_VOID(spi_bus_free, "SPIBus", "Failed to free SPI bus", SPIHostHandle_);
 }
 
-std::optional<SPIBus> SPIBus::makeSPIBus(spi_host_device_t hostID){
+std::optional<SPIBus> SPIBus::make(spi_host_device_t hostID){
     spi_bus_config_t buscfg = SPIBus::buildBusConfig();
 
-    esp_err_t ret = spi_bus_initialize(hostID, &buscfg, SPIConfig::dmaChannel);
-    if (ret != ESP_OK) {
-        ESP_LOGE("SPIBus", "Failed to initialize SPI bus: %s", esp_err_to_name(ret));
-        return std::nullopt;
-    }
-
-    return std::make_optional<SPIBus>();
+    TRY_OPTIONAL(spi_bus_initialize, "SPIBus", "Failed to initialize SPI bus", hostID, &buscfg, SPIConfig::dmaChannel);
+    return std::make_optional<SPIBus>(hostID);
 }
 
-bool SPIBus::addDeviceToBus(spi_device_interface_config_t *deviceConfig, spi_device_handle_t *deviceHandle){
-    esp_err_t ret = spi_bus_add_device(SPIHostHandle_, deviceConfig, deviceHandle);
-    if (ret != ESP_OK) {
-        ESP_LOGE("SPIBus", "Failed to add device to SPI bus: %s", esp_err_to_name(ret));
-        return false;
-    }
+std::optional<SPIDevice> SPIBus::addDeviceToBus(int csPin, int spiClockSpeedHz){
+    spi_device_handle_t deviceHandle;
+    spi_device_interface_config_t deviceConfig = SPIDevice::buildDeviceConfig(csPin, spiClockSpeedHz);
 
-    return true;
+    TRY_OPTIONAL(spi_bus_add_device, "SPIBus", "Failed to add device to SPI bus", SPIHostHandle_, &deviceConfig, &deviceHandle);
+    return std::make_optional<SPIDevice>(deviceHandle);
 }
 
 spi_bus_config_t SPIBus::buildBusConfig(){
