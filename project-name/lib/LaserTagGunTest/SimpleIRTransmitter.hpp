@@ -1,18 +1,18 @@
 #pragma once
 
-#include <Arduino.h>
-#include "IRProtocolEnum.hpp"
+#include "IRTransmitter.hpp"
+#include "IREncoder.hpp"
+#include <memory>
 
-class IRTransmitter {
+class SimpleIRTransmitter {
 public:
-    IRTransmitter(gpio_num_t irLedPin, IRProtocol protocol);
-    ~IRTransmitter();
+    SimpleIRTransmitter(gpio_num_t gpioPin, IRProtocol protocol, uint32_t address = 0x00);
+    ~SimpleIRTransmitter();
 
-    esp_err_t initialize();
     esp_err_t transmit(uint32_t code);
+    void setAddress(uint32_t address);
 
 private:
-    gpio_num_t irLedPin_;
-    IRProtocol protocol_;
-    // Internal variables for IR encoding
+    IRTransmitter irTransmitter_;
+    uint32_t address_;
 };

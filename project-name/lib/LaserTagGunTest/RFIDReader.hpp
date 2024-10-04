@@ -1,25 +1,24 @@
 #pragma once
 
-#include <Arduino.h>
 #include "MFRC522.hpp"
+#include <string>
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include <memory>
 
 class RFIDReader {
 public:
-    RFIDReader();
+    RFIDReader(std::unique_ptr<MFRC522> mfrc522);
     ~RFIDReader();
 
     esp_err_t initialize();
-    void scan(); // Called within the task loop
+    void scan();
     std::string getLastTagId();
 
 private:
-    // Hardware initialization and utilities
     esp_err_t initHardware();
 
-    // Internal variables
+    std::unique_ptr<MFRC522> mfrc522_;
     std::string lastTagId_;
-    SemaphoreHandle_t tagMutex_; // Protects lastTagId_
-
-    // MFRC522 instance or equivalent
-    MFRC522 mfrc522_;
+    SemaphoreHandle_t tagMutex_;
 };

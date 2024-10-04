@@ -9,6 +9,7 @@
 #include "freertos/semphr.h"
 #include "esp_log.h"
 #include "esp_err.h"
+#include "SPIBus.hpp"
 
 namespace MFRC522Constants {
 
@@ -104,6 +105,7 @@ class MFRC522 {
 public:
     // Constructor and Destructor
     MFRC522(spi_host_device_t spiHost = HSPI_HOST,
+            SPIBusManager spiBus,
             gpio_num_t misoPin = MFRC522Constants::defaultMisoPin_,
             gpio_num_t mosiPin = MFRC522Constants::defaultMosiPin_,
             gpio_num_t clkPin  = MFRC522Constants::defaultClkPin_,
@@ -131,6 +133,7 @@ public:
 
 private:
     // SPI communication
+    SPIBus spiBus_;
     spi_device_handle_t spiHandle_;
     SemaphoreHandle_t spiMutex_;
 

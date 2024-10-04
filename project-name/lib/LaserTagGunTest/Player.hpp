@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Arduino.h>
+#include <string>
+#include <cstdint>
 
 class Player {
 public:
@@ -14,4 +15,6 @@ public:
 private:
     std::string id_;
     uint32_t personalCode_;
+
+    void calculatePersonalCode();
 };

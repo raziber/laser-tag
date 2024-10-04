@@ -94,3 +94,33 @@ private:
     IRTransmitter(const IRTransmitter&) = delete;
     IRTransmitter& operator=(const IRTransmitter&) = delete;
 };
+
+
+
+void submit(function, function_args)
+{
+
+    // runs the function with funciton args in another thread. 
+}
+
+
+void foo(void* a)
+{
+    
+}
+
+submit(foo);
+
+struct RunRequest
+{
+    void (*void) function_pointer;
+    void* function_argument;
+}
+
+void task_main {
+    while(true)
+    {
+        RunRequest r = receive();
+        r.function_pointer(r.function_argument);
+    }
+}

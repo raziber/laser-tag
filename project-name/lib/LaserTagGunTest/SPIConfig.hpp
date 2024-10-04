@@ -11,7 +11,4 @@ namespace SPIConfig {
     static constexpr gpio_num_t ssPin = GPIO_NUM_5;      // Define your SS (CS) pin
     static constexpr gpio_num_t rstPin = GPIO_NUM_22;    // Define your RST pin
     static constexpr int dmaChannel = 1;
-
-    // RFID config
-    static constexpr int spiClockSpeedHz = 5000000; // 5 MHz
 }

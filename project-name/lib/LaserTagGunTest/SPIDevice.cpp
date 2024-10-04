@@ -14,6 +14,12 @@ spi_device_interface_config_t SPIDevice::buildDeviceConfig(int csPin, int spiClo
     return deviceConfig;
 }
 
+bool SPIDevice::transmit(spi_transaction_t *transaction){
+    TRY_BOOL(spi_device_transmit, "SPIDevice", "Failed to transmit from SPI device", deviceHandle_, transaction);
+
+    return true;
+}
+
 bool SPIDevice::remove(){
     TRY_BOOL(spi_bus_remove_device, "SPIDevice", "Failed to remove SPI device", deviceHandle_);
 

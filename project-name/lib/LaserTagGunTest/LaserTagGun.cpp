@@ -1,10 +1,17 @@
 #include "LaserTagGun.hpp"
 #include"SPIConfig.hpp"
+#include "RFIDConfig.hpp"
 #include "ErrorStates.hpp"
 #include "Macros.hpp"
 
 std::optional<LaserTagGun> LaserTagGun::make(){
     SPIBus spiBus = MAKE_WITH_ARGS(SPIBus, SPIConfig::spiHost);
+
+    auto rfid = spiBus.addDeviceToBus(RFIDConfig::csPin, RFIDConfig::spiClockSpeedHz);
+    if(!rfid.has_value()){
+        ESP_LOGE("LaserTagGun", "Failed to make RFID reader");
+        return std::nullopt;
+    }
 
     return std::make_optional<LaserTagGun>(/*args*/);
 }

@@ -3,6 +3,7 @@
 using namespace MFRC522Constants;
 
 MFRC522::MFRC522(spi_host_device_t spiHost,
+                SPIBusManager spiBus,
                  gpio_num_t misoPin,
                  gpio_num_t mosiPin,
                  gpio_num_t clkPin,
@@ -10,6 +11,7 @@ MFRC522::MFRC522(spi_host_device_t spiHost,
                  gpio_num_t rstPin)
     : spiHandle_(nullptr),
       spiMutex_(nullptr),
+      spiBus_(spiBus),
       misoPin_(misoPin),
       mosiPin_(mosiPin),
       clkPin_(clkPin),
@@ -317,6 +319,9 @@ esp_err_t MFRC522::readRegister(Register reg, uint8_t& value) {
         return ESP_ERR_TIMEOUT;
     }
 
+    MAKE(Lock, spiMutex);
+    Lock lock(spiMutex);
+
     uint8_t address = ((static_cast<uint8_t>(reg) << 1) & 0x7E) | 0x80;
     uint8_t data[2] = { address, 0 };
 
@@ -382,6 +387,13 @@ esp_err_t MFRC522::transceiveData(const uint8_t* sendData, uint8_t sendLen,
                                backData, backLen, validBits, rxAlign, checkCRC);
 }
 
+// fails on true
+#define CHECK(expr) (       \
+    if((expr)){             \
+        criticalState();    \
+    }                       \
+)
+
 esp_err_t MFRC522::communicateWithPICC(Command command, uint8_t waitIRq,
                                        const uint8_t* sendData, uint8_t sendLen,
                                        uint8_t* backData, uint8_t* backLen,
@@ -392,8 +404,10 @@ esp_err_t MFRC522::communicateWithPICC(Command command, uint8_t waitIRq,
     uint8_t txLastBits = validBits ? *validBits : 0;
     uint8_t bitFraming = (rxAlign << 4) + txLastBits;
 
-    ret = writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::Idle));
-    if (ret != ESP_OK) return ret;
+    // ret = writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::Idle));
+    // if (ret != ESP_OK) return ret;
+
+    CHECK(writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::Idle)));
 
     ret = writeRegister(Register::CommInterruptRequestRegister, 0x7F); // Clear interrupt flags
     if (ret != ESP_OK) return ret;
@@ -574,11 +588,6 @@ esp_err_t MFRC522::selectCard() {
     return ESP_OK;
 }
 
-gpio_num_t MFRC522::getRstPin(){
-    if (xSemaphoreTake(spiMutex_, portMAX_DELAY) != pdTRUE) {
-        ESP_LOGE("MFRC522", "Failed to take SPI mutex for reading");
-        return ESP_ERR_INVALID_STATE;
-    }
-    xSemaphoreGive(spiMutex_);
+gpio_num_t MFRC522::getRstPin() const {
     return rstPin_;
 }
