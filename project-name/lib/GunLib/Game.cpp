@@ -7,6 +7,7 @@ Game::Game()
 
 void Game::startGame() {
     gun_->start();
+
     const uint32_t GAME_TASK_STACK_SIZE = 4096;
     const UBaseType_t GAME_TASK_PRIORITY = 5;
     try {
@@ -36,7 +37,7 @@ void Game::stopGame() {
 void Game::gameLoop() {
     const uint32_t GAME_LOOP_DELAY_MS = 100;  // Configurable loop delay in milliseconds
     TickType_t lastWakeTime = xTaskGetTickCount();
-    while (isRunning_) {
+    while (isRunning_ && !gameTask_->shouldStop()) {
         if (!isPaused_) {
             // Game loop logic, e.g., checking game state, scoring, etc.
         }

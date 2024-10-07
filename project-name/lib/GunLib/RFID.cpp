@@ -28,7 +28,7 @@ void RFID::startMonitoring(Queue<std::string>& rfidQueue) {
 }
 
 void RFID::updateRead(Queue<std::string>& rfidQueue) {
-    while (true) {
+    while (!readingTask_->shouldStop()) {
         // Simulate reading data from the RFID reader
         std::string playerID = "SamplePlayerID";  // Placeholder for actual RFID read logic
         if (!rfidQueue.send(&playerID)) {

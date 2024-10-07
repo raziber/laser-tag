@@ -1,54 +1,21 @@
-#include <Arduino.h>
-#include "LaserTagGun.hpp"
-#include "LaserTagGunConfig.hpp"
-#include "SPIBus.hpp"
-#include "SPIConfig.hpp"
-#include "Macros.hpp"
-#include "ErrorStates.hpp"
+// GunMain.cpp
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "Game.hpp"
+#include "esp_log.h"
+#include <memory>
 
-// using namespace LaserTagGunConfig;
-// using namespace SPIConfig;
+extern "C" void app_main() {
+    try {
+        // Create the Game instance and start the game
+        std::unique_ptr<Game> game = std::make_unique<Game>();
+        game->startGame();
 
-// template <typename T>
-// using UPtr = std::unique_ptr<T>;
-
-// // Declare pointers to the objects globally
-// //std::unique_ptr<RFIDReader> rfidReader;
-// UPtr<RFIDReader> rfidReader;
-// std::unique_ptr<LaserTagGun> laserTagGun;
-
-
-
-
-
-// CHECK(do_something)
-// MAKE_AND_CHECK()
-
-// CHECK(value, "message")
-
-void setup() {
-    Serial.begin(115200);
-
-    auto spiBus = MAKE_WITH_ARGS(SPIBus, SPIConfig::spiHost);
-
-    // Create MFRC522 instance
-    auto mfrc522 = std::make_unique<MFRC522>(SPIConfig::spiHost, spiBus.value(), SPIConfig::ssPin, SPIConfig::rstPin);
-
-    // Create RFIDReader instance
-    rfidReader = std::make_unique<RFIDReader>(mfrc522);
-
-    // Create LaserTagGun instance
-    laserTagGun = std::make_unique<LaserTagGun>(irLedPin, buttonPin, protocol, std::move(rfidReader));
-
-    // Start the LaserTagGun
-    ret = laserTagGun->start();
-    if (ret != ESP_OK) {
-        ESP_LOGE("Main", "Failed to start LaserTagGun");
-        // Handle error accordingly
+        // Keep app_main running to maintain the scope of 'game'
+        while (true) {
+            vTaskDelay(pdMS_TO_TICKS(1000)); // Delay to prevent watchdog timer reset
+        }
+    } catch (const std::runtime_error& e) {
+        ESP_LOGE("Main", "Exception caught in setup: %s", e.what());
     }
-}
-
-void loop() {
-    // Main loop can be empty as FreeRTOS tasks handle the functionality
-    vTaskDelay(pdMS_TO_TICKS(1000));
 }

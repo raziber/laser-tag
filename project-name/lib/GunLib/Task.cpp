@@ -3,7 +3,7 @@
 #include "esp_log.h"
 
 Task::Task(const std::string& name, uint32_t stackSize, UBaseType_t priority, const std::function<void()>& taskFunction)
-    : handle_(nullptr), taskFunction_(taskFunction) {
+    : handle_(nullptr), taskFunction_(taskFunction), shouldStop_(false) {
     // Create a FreeRTOS task
     BaseType_t result = xTaskCreate(taskEntryPoint, name.c_str(), stackSize, this, priority, &handle_);
     if (result != pdPASS) {
@@ -13,35 +13,32 @@ Task::Task(const std::string& name, uint32_t stackSize, UBaseType_t priority, co
 }
 
 Task::~Task() {
-    try {
-        if (handle_ != nullptr) {
-            // Notify the task to stop
-            xTaskNotifyGive(handle_);
-            // Allow the task to clean up gracefully
-            vTaskDelay(pdMS_TO_TICKS(100));  // Allow some time for the task to terminate
-    
-            // Delete the task if it still exists
-            if (eTaskGetState(handle_) != eDeleted) {
-                vTaskDelete(handle_);
-            }
-        }
-    } catch (const std::exception& e) {
-        ESP_LOGE("Task", "Exception caught during task cleanup: %s", e.what());
+    if (handle_ != nullptr) {
+        // Signal the task to stop
+        requestStop();
+
+        // Optionally notify the task if it's blocked
+        // xTaskNotifyGive(handle_);
+
+        // Wait for the task to terminate
+        vTaskDelay(pdMS_TO_TICKS(100));  // Adjust the delay as needed
     }
 }
 
 void Task::taskEntryPoint(void* params) {
     Task* task = static_cast<Task*>(params);
 
-    // Infinite loop that checks for notifications
-    while (true) {
-        // Wait indefinitely for a notification to continue
-        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1000));
+    // Execute the task function
+    task->taskFunction_();
 
-        // Execute the task function
-        task->taskFunction_();
-    }
+    // Delete the task when it finishes executing
+    vTaskDelete(nullptr);  // The task deletes itself
+}
 
-    // Clean up resources and delete the task
-    vTaskDelete(nullptr);  // Delete the task when it finishes executing
+void Task::requestStop() {
+    shouldStop_ = true;
+}
+
+bool Task::shouldStop() const {
+    return shouldStop_;
 }

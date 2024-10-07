@@ -1,18 +1,21 @@
+// Button.hpp
 #pragma once
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "Queue.hpp"
+#include <memory>
+#include "Task.hpp"
 
-#include "Arduino.h"
-
-class Button{
+class Button {
 public:
-    static std::optional<Button> make(gpio_num_t gpio);
+    Button(gpio_num_t pin, TickType_t debounceTime);
+    void startMonitoring(Queue<bool>& buttonQueue);
+    ~Button();
 
-    ~Button() = default;
 private:
-    gpio_num_t gpio_;
-    bool buttonHandle_;
-
-    Button(gpio_num_t gpio);
-
-    static gpio_config_t configureGpio(gpio_num_t gpio);
-    bool monitor();
+    void buttonTaskFunction(Queue<bool>& buttonQueue);
+    std::unique_ptr<Task> buttonTask_;  // Use the Task class instead of raw task handle
+    gpio_num_t pin_;  // GPIO pin for the button
+    TickType_t debounceTime_;  // Debounce time to prevent false triggers
 };

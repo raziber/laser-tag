@@ -27,7 +27,7 @@ void Button::buttonTaskFunction(Queue<bool>& buttonQueue) {
     uint32_t stableStateCount = 0;  // Track stable state count for debouncing
     const uint32_t STABLE_THRESHOLD = 5;  // Number of consistent reads to confirm state change
 
-    while (true) {
+    while (!buttonTask_->shouldStop()) {
         bool currentState = gpio_get_level(pin_);  // Read the current state of the button
 
         // Check if the current state is different from the previous stable state

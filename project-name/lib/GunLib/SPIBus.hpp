@@ -1,18 +1,23 @@
+// SPIBus.hpp
 #pragma once
 
-#include <optional>
 #include "SPIDevice.hpp"
+#include "SPIConfig.hpp"
+#include <driver/spi_master.h>
+#include <vector>
 
-class SPIBus{
+class SPIBus {
 public:
-    static std::optional<SPIBus> make(spi_host_device_t hostID);
+    SPIBus(spi_host_device_t hostID);
     ~SPIBus();
 
-    std::optional<SPIDevice> addDeviceToBus(int csPin, int spiClockSpeedHz);
+    SPIDevice addDeviceToBus(int csPin, int spiClockSpeedHz);
+
 private:
-    SPIBus(spi_host_device_t hostID);
+    spi_host_device_t SPIHostHandle_;
+    std::vector<spi_device_handle_t> spiDevices_;  // Track all device handles for cleanup
 
     static spi_bus_config_t buildBusConfig();
 
-    spi_host_device_t SPIHostHandle_;
+    void cleanupDevices();  // Helper function to clean up all devices
 };
