@@ -21,14 +21,14 @@ public:
         }
     }
 
-    bool send(const T* item, TickType_t ticksToWait = portMAX_DELAY) {
+    bool send(const T& item, TickType_t ticksToWait = portMAX_DELAY) {
         // Send an item to the queue
-        return xQueueSend(queueHandle_, item, ticksToWait) == pdTRUE;
+        return xQueueSend(queueHandle_, &item, ticksToWait) == pdTRUE;
     }
 
-    bool receive(T* buffer, TickType_t ticksToWait = portMAX_DELAY) {
+    bool receive(T& buffer, TickType_t ticksToWait = portMAX_DELAY) {
         // Receive an item from the queue
-        return xQueueReceive(queueHandle_, buffer, ticksToWait) == pdTRUE;
+        return xQueueReceive(queueHandle_, &buffer, ticksToWait) == pdTRUE;
     }
 
 private:
