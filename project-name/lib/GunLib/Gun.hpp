@@ -29,5 +29,7 @@ private:
     std::unique_ptr<Queue<std::string>> rfidQueue_;
     std::unique_ptr<Task> gunTask_;
 
+    SemaphoreHandle_t playerIDMutex_;
+
     void gunTaskFunction();
 };

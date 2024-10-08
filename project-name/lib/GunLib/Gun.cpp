@@ -3,12 +3,19 @@
 #include "SPIConfig.hpp"
 #include "RFIDConfig.hpp"
 #include "esp_log.h"
+#include "MutexLockGuard.hpp"
 
 Gun::Gun()
     : spiBus_(nullptr),
       rfid_(nullptr),
       button_(nullptr),
       currentPlayerID_("") {
+
+    playerIDMutex_ = xSemaphoreCreateRecursiveMutex();
+    if (playerIDMutex_ == nullptr) {
+        ESP_LOGE("Gun", "Failed to create player ID mutex");
+        throw std::runtime_error("Failed to create player ID mutex");
+    }
 
     try {
         spiBus_ = std::make_unique<SPIBus>(SPIConfig::spiHost);
@@ -100,6 +107,7 @@ void Gun::gunTaskFunction() {
             std::string newPlayerID;
             // Check if a new player ID was read from the RFID
             if (rfidQueue_->receive(&newPlayerID, pdMS_TO_TICKS(RFID_QUEUE_WAIT_MS))) {
+                MutexLockGuard lock(playerIDMutex_);
                 currentPlayerID_ = newPlayerID;
                 ESP_LOGI("Gun", "Updated player ID: %s", currentPlayerID_.c_str());
             }
@@ -118,9 +126,12 @@ void Gun::gunTaskFunction() {
 
 void Gun::fire() {
     // Logic to send IR signal with currentPlayerID_
-    ESP_LOGI("Gun", "Firing with player ID: %s", currentPlayerID_.c_str());
+    MutexLockGuard lock(playerIDMutex_);
+    std::string playerID = currentPlayerID_;
+    ESP_LOGI("Gun", "Firing with player ID: %s", playerID.c_str());
 }
 
 std::string Gun::getPlayerID() const {
+    MutexLockGuard lock(playerIDMutex_);
     return currentPlayerID_;  // Return the current player ID
 }

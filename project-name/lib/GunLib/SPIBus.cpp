@@ -2,9 +2,16 @@
 #include "SPIBus.hpp"
 #include <esp_log.h>
 #include "Macros.hpp"
+#include <stdexcept>
+#include "MutexLockGuard.hpp"
 
 SPIBus::SPIBus(spi_host_device_t hostID) : SPIHostHandle_(hostID) {
     spi_bus_config_t buscfg = SPIBus::buildBusConfig();
+
+    spiMutex_ = xSemaphoreCreateRecursiveMutex();
+    if (spiMutex_ == nullptr) {
+        throw std::runtime_error("Failed to create SPI mutex");
+    }
 
     if (spi_bus_initialize(SPIHostHandle_, &buscfg, SPIConfig::dmaChannel) != ESP_OK) {
         ESP_LOGE("SPIBus", "Failed to initialize SPI bus");
@@ -23,6 +30,8 @@ SPIBus::~SPIBus() {
 }
 
 SPIDevice SPIBus::addDeviceToBus(int csPin, int spiClockSpeedHz) {
+    MutexLockGuard lock(spiMutex_);
+
     spi_device_interface_config_t deviceConfig = SPIDevice::buildDeviceConfig(csPin, spiClockSpeedHz);
     spi_device_handle_t deviceHandle;
 
@@ -52,6 +61,8 @@ spi_bus_config_t SPIBus::buildBusConfig() {
 }
 
 void SPIBus::cleanupDevices() {
+    MutexLockGuard lock(spiMutex_);
+
     for (auto& device : spiDevices_) {
         if (spi_bus_remove_device(device) != ESP_OK) {
             ESP_LOGE("SPIBus", "Failed to remove SPI device");

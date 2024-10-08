@@ -1,9 +1,16 @@
 // Button.cpp
 #include "Button.hpp"
 #include "esp_log.h"
+#include "freertos/semphr.h"
+#include "MutexLockGuard.hpp"
 
 Button::Button(gpio_num_t pin, TickType_t debounceTime)
     : pin_(pin), debounceTime_(debounceTime) {
+    buttonMutex_ = xSemaphoreCreateRecursiveMutex();
+    if (buttonMutex_ == nullptr) {
+        throw std::runtime_error("Failed to create button mutex");
+    }
+    
     // Configure the GPIO pin for the button
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_POSEDGE;  // Trigger on positive edge (button press)
@@ -28,6 +35,8 @@ void Button::buttonTaskFunction(Queue<bool>& buttonQueue) {
     const uint32_t STABLE_THRESHOLD = 5;  // Number of consistent reads to confirm state change
 
     while (!buttonTask_->shouldStop()) {
+        MutexLockGuard lock(buttonMutex_);
+        
         bool currentState = gpio_get_level(pin_);  // Read the current state of the button
 
         // Check if the current state is different from the previous stable state

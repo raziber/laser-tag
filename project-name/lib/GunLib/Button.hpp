@@ -18,4 +18,6 @@ private:
     std::unique_ptr<Task> buttonTask_;  // Use the Task class instead of raw task handle
     gpio_num_t pin_;  // GPIO pin for the button
     TickType_t debounceTime_;  // Debounce time to prevent false triggers
+
+    SemaphoreHandle_t buttonMutex_;
 };

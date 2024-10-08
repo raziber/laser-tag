@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
+#include <stdint.h>
 
 // PCD (reader) Commands
 enum class Command : uint8_t {
