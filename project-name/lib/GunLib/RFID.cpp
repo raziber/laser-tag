@@ -17,13 +17,8 @@ RFID::RFID(SPIBus& spiBus, int csPin)
         throw std::runtime_error("Failed to create RFID mutex");
     }
     
-    if (!initResetPin()) {
-        throw std::runtime_error("Failed to initialize reset pin");
-    }
-
-    if (!reset()) {
-        throw std::runtime_error("Failed to reset RFID module");
-    }
+    initResetPin();
+    reset();
 }
 
 void RFID::startMonitoring(std::shared_ptr<Queue<std::string>> rfidQueue) {
@@ -43,6 +38,10 @@ void RFID::startMonitoring(std::shared_ptr<Queue<std::string>> rfidQueue) {
 }
 
 void RFID::updateRead() {
+    if (!readingTask_) {
+        throw std::runtime_error("Reading task is not initialized");
+    }
+
     while (!readingTask_->shouldStop()) {
         processRFIDReading();
         delayBetweenReadings();
@@ -50,12 +49,15 @@ void RFID::updateRead() {
 }
 
 void RFID::processRFIDReading() {
-    std::string playerID = readPlayerID();
-
-    if (!playerID.empty()) {
-        if (!rfidQueue_->send(playerID)) {
-            ESP_LOGE("RFID", "Failed to send player ID to queue: Queue might be full");
+    try {
+        std::string playerID = readPlayerID();
+        if (!playerID.empty()) {
+            if (!rfidQueue_->send(playerID)) {
+                throw std::runtime_error("RFID - Failed to send player ID to queue: Queue might be full");
+            }
         }
+    } catch (const std::exception& e) {
+        ESP_LOGE("RFID", "Error during RFID reading: %s", e.what());
     }
 }
 
@@ -63,125 +65,73 @@ void RFID::delayBetweenReadings() {
     vTaskDelay(pdMS_TO_TICKS(500));  // Adjust delay as needed
 }
 
-bool RFID::antennaOn() {
-    MutexLockGuard lock(rfidMutex_);
-
-    auto regValue = readRegister(Register::TxControlRegister);
-    if (!regValue.has_value()) {
-        ESP_LOGE("RFID", "Failed to read TxControlRegister");
-        return false;
+void RFID::antennaOn() {
+    uint8_t regValue = readRegister(Register::TxControlRegister);
+    if (!(regValue & 0x03)) {
+        writeRegister(Register::TxControlRegister, regValue | 0x03);
     }
-    uint8_t txControlReg = regValue.value();
-    if (!(txControlReg & 0x03)) {
-        return writeRegister(Register::TxControlRegister, txControlReg | 0x03);
-    }
-    return true;
 }
 
-bool RFID::request(uint8_t requestMode, std::vector<uint8_t>& atqa) {
+void RFID::request(uint8_t requestMode, std::vector<uint8_t>& atqa) {
     MutexLockGuard lock(rfidMutex_);
 
     // Set BitFramingRegister to start sending at the first bit
-    if (!writeRegister(Register::BitFramingRegister, 0x07)) {
-        ESP_LOGE("RFID", "Failed to set BitFramingRegister");
-        return false;
-    }
+    writeRegister(Register::BitFramingRegister, 0x07);
 
     std::vector<uint8_t> sendData = { requestMode };
 
-    if (!communicateWithPICC(Command::Transceive, sendData, atqa)) {
-        ESP_LOGE("RFID", "Failed to communicate with PICC");
-        return false;
-    }
+    communicateWithPICC(Command::Transceive, sendData, atqa);
 
     if (atqa.size() != 2) {
         ESP_LOGE("RFID", "Invalid ATQA size: %d", atqa.size());
-        return false;
+        throw std::runtime_error("Invalid ATQA size");
     }
-
-    return true;
 }
 
-bool RFID::communicateWithPICC(Command command, const std::vector<uint8_t>& sendData, std::vector<uint8_t>& backData) {
+void RFID::communicateWithPICC(Command command, const std::vector<uint8_t>& sendData, std::vector<uint8_t>& backData) {
     MutexLockGuard lock(rfidMutex_);
 
-    if (!prepareForCommunication()) {
-        return false;
-    }
+    prepareForCommunication();
+    writeToFIFO(sendData);
+    startCommand(command);
 
-    if (!writeToFIFO(sendData)) {
-        return false;
-    }
+    uint8_t waitIRq = 0x30;  // Default waitIRq, adjust as needed
 
-    if (!startCommand(command)) {
-        return false;
+    if (command == Command::Transceive) {
+        waitIRq = 0x30;  // RxIRq and IdleIRq
+    } else if (command == Command::Idle) {
+        waitIRq = 0x10;  // IdleIRq
     }
-
-    if (!waitForCommandCompletion()) {
-        return false;
-    }
-
-    if (!checkForErrors()) {
-        return false;
-    }
-
-    if (!readFromFIFO(backData)) {
-        return false;
-    }
-
-    return true;
+    // Add other commands as needed
+    waitForCommandCompletion(waitIRq);
+    checkForErrors();
+    readFromFIFO(backData);
 }
 
-bool RFID::prepareForCommunication() {
-    if (!writeRegister(Register::CommIrqReg, 0x7F)) {
-        ESP_LOGE("RFID", "Failed to clear interrupt flags");
-        return false;
-    }
-
-    if (!writeRegister(Register::FIFOLevelRegister, 0x80)) {
-        ESP_LOGE("RFID", "Failed to flush FIFO buffer");
-        return false;
-    }
-
-    return true;
+void RFID::prepareForCommunication() {
+    writeRegister(Register::CommIrqReg, 0x7F);
+    writeRegister(Register::FIFOLevelRegister, 0x80);
 }
 
-bool RFID::writeToFIFO(const std::vector<uint8_t>& data) {
+void RFID::writeToFIFO(const std::vector<uint8_t>& data) {
     for (uint8_t byte : data) {
-        if (!writeRegister(Register::FIFODataRegister, byte)) {
-            ESP_LOGE("RFID", "Failed to write to FIFO");
-            return false;
-        }
+        writeRegister(Register::FIFODataRegister, byte);
     }
-    return true;
 }
 
-bool RFID::startCommand(Command command) {
-    if (!writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::Idle))) {
-        ESP_LOGE("RFID", "Failed to set CommandRegister to Idle");
-        return false;
-    }
-
-    if (!writeRegister(Register::BitFramingRegister, 0x00)) {
-        ESP_LOGE("RFID", "Failed to set BitFramingRegister");
-        return false;
-    }
-
-    if (!writeRegister(Register::CommandRegister, static_cast<uint8_t>(command))) {
-        ESP_LOGE("RFID", "Failed to start command");
-        return false;
-    }
-
-    return true;
+void RFID::startCommand(Command command) {
+    writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::Idle));
+    writeRegister(Register::BitFramingRegister, 0x00);
+    writeRegister(Register::CommandRegister, static_cast<uint8_t>(command));
 }
 
-bool RFID::waitForCommandCompletion() {
-    const uint8_t waitIRq = 0x30;  // RxIRq and IdleIRq
+void RFID::waitForCommandCompletion(uint8_t waitIRq) {
     bool commandCompleted = false;
 
     for (int i = 0; i < 200; ++i) {
-        uint8_t irqReg = readRegister(Register::CommIrqReg).value_or(0);
-        if (irqReg & waitIRq) {
+        uint8_t irqRegValue = readRegister(Register::CommIrqReg);
+
+        if (irqRegValue & waitIRq) {
             commandCompleted = true;
             break;  // Command completed
         }
@@ -189,91 +139,63 @@ bool RFID::waitForCommandCompletion() {
     }
 
     if (!commandCompleted) {
-        ESP_LOGE("RFID", "Timeout waiting for command to complete");
-        return false;
+        throw std::runtime_error("Timeout waiting for command to complete");
     }
-
-    return true;
 }
 
-bool RFID::checkForErrors() {
-    uint8_t errorReg = readRegister(Register::ErrorReg).value_or(0);
-    if (errorReg & 0x13) {  // Buffer overflow, parity error, protocol error
-        ESP_LOGE("RFID", "Communication error: 0x%02X", errorReg);
-        return false;
+void RFID::checkForErrors() {
+    uint8_t regValue = readRegister(Register::ErrorReg);
+
+    if (regValue & 0x1B) {  // Check for BufferOvfl, ParityErr, CRCErr, CollErr
+        ESP_LOGE("RFID", "Communication error: 0x%02X", regValue);
+        throw std::runtime_error("Communication error");
     }
-    return true;
 }
 
-bool RFID::readFromFIFO(std::vector<uint8_t>& data) {
-    uint8_t fifoLevel = readRegister(Register::FIFOLevelRegister).value_or(0);
-    if (fifoLevel == 0) {
-        ESP_LOGE("RFID", "No data in FIFO");
-        return false;
-    }
+void RFID::readFromFIFO(std::vector<uint8_t>& data) {
+    uint8_t fifoLevel = readRegister(Register::FIFOLevelRegister);
 
     for (uint8_t i = 0; i < fifoLevel; ++i) {
-        uint8_t byte = readRegister(Register::FIFODataRegister).value_or(0);
+        uint8_t byte = readRegister(Register::FIFODataRegister);
         data.push_back(byte);
     }
-    return true;
 }
 
-bool RFID::selectTag(std::vector<uint8_t>& uid) {
+void RFID::selectTag(std::vector<uint8_t>& uid) {
     MutexLockGuard lock(rfidMutex_);
 
     std::vector<uint8_t> uidComplete;
-    if (!performAntiCollision(uidComplete)) {
-        return false;
-    }
-
-    if (!validateBCC(uidComplete)) {
-        return false;
-    }
+    performAntiCollision(uidComplete);
+    validateBCC(uidComplete);
 
     // UID bytes are uidComplete[0..3]
     uid.assign(uidComplete.begin(), uidComplete.begin() + 4);
 
     std::vector<uint8_t> selectCommand;
-    if (!constructSelectCommand(uidComplete, selectCommand)) {
-        return false;
-    }
-
-    if (!executeSelectCommand(selectCommand)) {
-        return false;
-    }
-
-    // UID successfully read and tag selected
-    return true;
+    constructSelectCommand(uidComplete, selectCommand);
+    executeSelectCommand(selectCommand);
 }
 
-bool RFID::performAntiCollision(std::vector<uint8_t>& uidComplete) {
+void RFID::performAntiCollision(std::vector<uint8_t>& uidComplete) {
     std::vector<uint8_t> buffer = { static_cast<uint8_t>(PICCCommand::AntiCollisionCL1), 0x20 };
 
-    if (!communicateWithPICC(Command::Transceive, buffer, uidComplete)) {
-        ESP_LOGE("RFID", "Failed during anti-collision");
-        return false;
-    }
+    communicateWithPICC(Command::Transceive, buffer, uidComplete);
 
     if (uidComplete.size() != 5) {
         ESP_LOGE("RFID", "Invalid UID size during anti-collision: %d", uidComplete.size());
-        return false;
+        throw std::runtime_error("Invalid UID size during anti-collision");
     }
-
-    return true;
 }
 
-bool RFID::validateBCC(const std::vector<uint8_t>& uidComplete) {
+void RFID::validateBCC(const std::vector<uint8_t>& uidComplete) {
     uint8_t bcc = uidComplete[4];
     uint8_t calculatedBCC = uidComplete[0] ^ uidComplete[1] ^ uidComplete[2] ^ uidComplete[3];
     if (bcc != calculatedBCC) {
-        ESP_LOGE("RFID", "BCC mismatch");
-        return false;
+        throw std::runtime_error("BCC mismatch");
     }
-    return true;
 }
 
-bool RFID::constructSelectCommand(const std::vector<uint8_t>& uidComplete, std::vector<uint8_t>& selectCommand) {
+void RFID::constructSelectCommand(const std::vector<uint8_t>& uidComplete, std::vector<uint8_t>& selectCommand) {
     selectCommand.clear();
     selectCommand.push_back(static_cast<uint8_t>(PICCCommand::SelectCascadeLevel1));
     selectCommand.push_back(0x70);  // Select command
@@ -281,85 +203,54 @@ bool RFID::constructSelectCommand(const std::vector<uint8_t>& uidComplete, std::
 
     // Calculate CRC_A
     std::vector<uint8_t> crc;
-    if (!calculateCRC(selectCommand, crc)) {
-        ESP_LOGE("RFID", "Failed to calculate CRC");
-        return false;
-    }
+    calculateCRC(selectCommand, crc);
     selectCommand.insert(selectCommand.end(), crc.begin(), crc.end());
-
-    return true;
 }
 
-bool RFID::executeSelectCommand(const std::vector<uint8_t>& selectCommand) {
+void RFID::executeSelectCommand(const std::vector<uint8_t>& selectCommand) {
     std::vector<uint8_t> sak;  // Select Acknowledge
-    if (!communicateWithPICC(Command::Transceive, selectCommand, sak)) {
-        ESP_LOGE("RFID", "Failed during tag selection");
-        return false;
+    communicateWithPICC(Command::Transceive, selectCommand, sak);
+
+    // Check that SAK has exactly one byte
+    if (sak.size() != 1) {
+        ESP_LOGE("RFID", "Invalid SAK size: %d", sak.size());
+        throw std::runtime_error("Invalid SAK size");
     }
 
-    if (sak.empty() || (sak[0] & 0x04)) {
-        ESP_LOGE("RFID", "No SAK received or UID not complete");
-        return false;
+    // Check if UID is complete
+    if (sak[0] & 0x04) {
+        throw std::runtime_error("UID not complete");
     }
-
-    return true;
 }
 
-bool RFID::calculateCRC(const std::vector<uint8_t>& data, std::vector<uint8_t>& result) {
+void RFID::calculateCRC(const std::vector<uint8_t>& data, std::vector<uint8_t>& result) {
     MutexLockGuard lock(rfidMutex_);
 
-    if (!prepareForCRCCalculation()) {
-        return false;
-    }
-
-    if (!writeDataForCRC(data)) {
-        return false;
-    }
-
-    if (!startCRCCalculation()) {
-        return false;
-    }
-
-    if (!waitForCRCCompletion()) {
-        return false;
-    }
-
-    if (!readCRCResult(result)) {
-        return false;
-    }
-
-    return true;
+    prepareForCRCCalculation();
+    writeDataForCRC(data);
+    startCRCCalculation();
+    waitForCRCCompletion();
+    readCRCResult(result);
 }
 
-bool RFID::prepareForCRCCalculation() {
-    if (!writeRegister(Register::DivIrqReg, 0x04)) {
-        ESP_LOGE("RFID", "Failed to clear DivIrqReg");
-        return false;
-    }
-    if (!writeRegister(Register::FIFOLevelRegister, 0x80)) {
-        ESP_LOGE("RFID", "Failed to flush FIFO buffer");
-        return false;
-    }
-    return true;
+void RFID::prepareForCRCCalculation() {
+    writeRegister(Register::DivIrqReg, 0x04);
+    writeRegister(Register::FIFOLevelRegister, 0x80);
 }
 
-bool RFID::writeDataForCRC(const std::vector<uint8_t>& data) {
-    return writeToFIFO(data);
+void RFID::writeDataForCRC(const std::vector<uint8_t>& data) {
+    writeToFIFO(data);
 }
 
-bool RFID::startCRCCalculation() {
-    if (!writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::CalculateCRC))) {
-        ESP_LOGE("RFID", "Failed to start CRC calculation");
-        return false;
-    }
-    return true;
+void RFID::startCRCCalculation() {
+    writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::CalculateCRC));
 }
 
-bool RFID::waitForCRCCompletion() {
+void RFID::waitForCRCCompletion() {
     bool crcCompleted = false;
     const int maxCycles = 5000;
     for (int i = 0; i < maxCycles; ++i) {
-        uint8_t irqReg = readRegister(Register::DivIrqReg).value_or(0);
+        uint8_t irqReg = readRegister(Register::DivIrqReg);
         if (irqReg & 0x04) {
             crcCompleted = true;
             break;  // CRC calculation completed
@@ -368,32 +259,24 @@ bool RFID::waitForCRCCompletion() {
     }
 
     if (!crcCompleted) {
-        ESP_LOGE("RFID", "Timeout during CRC calculation");
-        return false;
+        throw std::runtime_error("Timeout during CRC calculation");
     }
-
-    return true;
 }
 
-bool RFID::readCRCResult(std::vector<uint8_t>& result) {
-    uint8_t crcA = readRegister(Register::CRCResultLowRegister).value_or(0);
-    uint8_t crcB = readRegister(Register::CRCResultHighRegister).value_or(0);
+void RFID::readCRCResult(std::vector<uint8_t>& result) {
+    uint8_t crcA = readRegister(Register::CRCResultLowRegister);
+    uint8_t crcB = readRegister(Register::CRCResultHighRegister);
 
     result = { crcA, crcB };
-    return true;
 }
 
 std::string RFID::readPlayerID() {
     MutexLockGuard lock(rfidMutex_);
 
-    if (!initializeCommunication()) {
-        return "";
-    }
+    initializeCommunication();
 
     std::vector<uint8_t> uid;
-    if (!retrieveUID(uid)) {
-        return "";
-    }
+    retrieveUID(uid);
 
     std::string playerID = convertUIDToString(uid);
 
@@ -401,29 +284,17 @@ std::string RFID::readPlayerID() {
     return playerID;
 }
 
-bool RFID::initializeCommunication() {
-    if (!antennaOn()) {
-        ESP_LOGE("RFID", "Failed to turn on antenna");
-        return false;
-    }
-    return true;
+void RFID::initializeCommunication() {
+    antennaOn();
 }
 
-bool RFID::retrieveUID(std::vector<uint8_t>& uid) {
+void RFID::retrieveUID(std::vector<uint8_t>& uid) {
     // Send a Request command to search for tags
     std::vector<uint8_t> atqa;
-    if (!request(static_cast<uint8_t>(PICCCommand::RequestA), atqa)) {
-        // No tag found
-        return false;
-    }
+    request(static_cast<uint8_t>(PICCCommand::RequestA), atqa);
 
     // Select the tag to retrieve its UID
-    if (!selectTag(uid)) {
-        ESP_LOGE("RFID", "Failed to select tag");
-        return false;
-    }
-
-    return true;
+    selectTag(uid);
 }
 
 std::string RFID::convertUIDToString(const std::vector<uint8_t>& uid) {
@@ -435,9 +306,7 @@ std::string RFID::convertUIDToString(const std::vector<uint8_t>& uid) {
     return uidStream.str();
 }
 
-std::optional<uint8_t> RFID::readRegister(Register reg) {
-    MutexLockGuard lock(rfidMutex_);
-
+uint8_t RFID::readRegister(Register reg) {
     uint8_t address = ((static_cast<uint8_t>(reg) << 1) & 0x7E) | 0x80;
     uint8_t data[2] = { address, 0 };
 
@@ -446,20 +315,16 @@ std::optional<uint8_t> RFID::readRegister(Register reg) {
     transaction.tx_buffer = data;
     transaction.rx_buffer = data;
 
-    // Add the flags here
     transaction.flags = SPI_TRANS_USE_RXDATA | SPI_TRANS_USE_TXDATA;
 
     if (!spiDevice_.transmit(&transaction)) {
-        ESP_LOGE("RFID", "Failed to read reg %d", reg);
-        return std::nullopt;
+        throw std::runtime_error("Failed to read register");
     }
 
     return data[1];
 }
 
-bool RFID::writeRegister(Register reg, uint8_t value) {
-    MutexLockGuard lock(rfidMutex_);
-
+void RFID::writeRegister(Register reg, uint8_t value) {
     uint8_t address = (static_cast<uint8_t>(reg) << 1) & 0x7E;
     uint8_t data[2] = { address, value };
 
@@ -470,64 +335,42 @@ bool RFID::writeRegister(Register reg, uint8_t value) {
     // Add the flags here
     transaction.flags = SPI_TRANS_USE_TXDATA;
 
-    if (!spiDevice_.transmit(&transaction)) {
-        ESP_LOGE("RFID", "Failed to write reg %d, with value %d", reg, value);
-        return false;
-    }
-
-    return true;
+    spiDevice_.transmit(&transaction);
 }
 
-bool RFID::initResetPin() {
+void RFID::initResetPin() {
     if (gpio_set_direction(RFIDConfig::rstPin, GPIO_MODE_OUTPUT) != ESP_OK) {
-        return false;
+        throw std::runtime_error("Failed to set gpio to output");
     }
 
     // Set reset pin to HIGH (inactive)
     if (gpio_set_level(RFIDConfig::rstPin, 1) != ESP_OK) {
-        return false;
+        throw std::runtime_error("Failed to set reset pin to HIGH");
     }
-
-    return true;
 }
 
-bool RFID::reset() {
+void RFID::reset() {
     MutexLockGuard lock(rfidMutex_);
 
-    if (!toggleResetPin()) {
-        return false;
-    }
-
-    if (!performSoftReset()) {
-        return false;
-    }
-
-    return true;
+    toggleResetPin();
+    performSoftReset();
 }
 
-bool RFID::toggleResetPin() {
+void RFID::toggleResetPin() {
     gpio_num_t rstPin = RFIDConfig::rstPin;
 
     if (gpio_set_level(rstPin, 0) != ESP_OK) {
-        ESP_LOGE("RFID", "Failed to set reset pin LOW");
-        return false;
+        throw std::runtime_error("Failed to set reset pin to LOW");
     }
     vTaskDelay(pdMS_TO_TICKS(50));
 
     if (gpio_set_level(rstPin, 1) != ESP_OK) {
-        ESP_LOGE("RFID", "Failed to set reset pin HIGH");
-        return false;
+        throw std::runtime_error("Failed to set reset pin to HIGH");
     }
     vTaskDelay(pdMS_TO_TICKS(50));
-
-    return true;
 }
 
-bool RFID::performSoftReset() {
-    if (!writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::SoftReset))) {
-        ESP_LOGE("RFID", "Failed to reset RFID reader");
-        return false;
-    }
+void RFID::performSoftReset() {
+    writeRegister(Register::CommandRegister, static_cast<uint8_t>(Command::SoftReset));
     vTaskDelay(pdMS_TO_TICKS(50));
-    return true;
 }

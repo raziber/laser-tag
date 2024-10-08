@@ -42,49 +42,49 @@ private:
     std::string readPlayerID();
 
     // === RFID Initialization and Reset ===
-    bool initResetPin();
-    bool reset();
-    bool toggleResetPin();
-    bool performSoftReset();
-    bool initializeCommunication();
+    void initResetPin();
+    void reset();
+    void toggleResetPin();
+    void performSoftReset();
+    void initializeCommunication();
 
     // === UID Retrieval and Conversion ===
-    bool retrieveUID(std::vector<uint8_t>& uid);
+    void retrieveUID(std::vector<uint8_t>& uid);
     std::string convertUIDToString(const std::vector<uint8_t>& uid);
 
     // === RFID Command Methods ===
-    bool antennaOn();
-    bool request(uint8_t requestMode, std::vector<uint8_t>& atqa);
-    bool selectTag(std::vector<uint8_t>& uid);
+    void antennaOn();
+    void request(uint8_t requestMode, std::vector<uint8_t>& atqa);
+    void selectTag(std::vector<uint8_t>& uid);
 
     // === Tag Selection Helpers ===
-    bool performAntiCollision(std::vector<uint8_t>& uidComplete);
-    bool validateBCC(const std::vector<uint8_t>& uidComplete);
-    bool constructSelectCommand(const std::vector<uint8_t>& uidComplete, std::vector<uint8_t>& selectCommand);
-    bool executeSelectCommand(const std::vector<uint8_t>& selectCommand);
+    void performAntiCollision(std::vector<uint8_t>& uidComplete);
+    void validateBCC(const std::vector<uint8_t>& uidComplete);
+    void constructSelectCommand(const std::vector<uint8_t>& uidComplete, std::vector<uint8_t>& selectCommand);
+    void executeSelectCommand(const std::vector<uint8_t>& selectCommand);
 
     // === Communication with PICC ===
-    bool communicateWithPICC(Command command, const std::vector<uint8_t>& sendData, std::vector<uint8_t>& backData);
+    void communicateWithPICC(Command command, const std::vector<uint8_t>& sendData, std::vector<uint8_t>& backData);
 
     // === Communication Helper Methods ===
-    bool prepareForCommunication();
-    bool writeToFIFO(const std::vector<uint8_t>& data);
-    bool startCommand(Command command);
-    bool waitForCommandCompletion();
-    bool checkForErrors();
-    bool readFromFIFO(std::vector<uint8_t>& data);
+    void prepareForCommunication();
+    void writeToFIFO(const std::vector<uint8_t>& data);
+    void startCommand(Command command);
+    void waitForCommandCompletion(uint8_t waitIRq);
+    void checkForErrors();
+    void readFromFIFO(std::vector<uint8_t>& data);
 
     // === CRC Calculation ===
-    bool calculateCRC(const std::vector<uint8_t>& data, std::vector<uint8_t>& result);
+    void calculateCRC(const std::vector<uint8_t>& data, std::vector<uint8_t>& result);
 
     // === CRC Calculation Helpers ===
-    bool prepareForCRCCalculation();
-    bool writeDataForCRC(const std::vector<uint8_t>& data);
-    bool startCRCCalculation();
-    bool waitForCRCCompletion();
-    bool readCRCResult(std::vector<uint8_t>& result);
+    void prepareForCRCCalculation();
+    void writeDataForCRC(const std::vector<uint8_t>& data);
+    void startCRCCalculation();
+    void waitForCRCCompletion();
+    void readCRCResult(std::vector<uint8_t>& result);
 
     // === Low-Level Register Access ===
-    std::optional<uint8_t> readRegister(Register reg);
-    bool writeRegister(Register reg, uint8_t value);
+    uint8_t readRegister(Register reg);
+    void writeRegister(Register reg, uint8_t value);
 };
